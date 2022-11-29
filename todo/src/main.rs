@@ -26,17 +26,19 @@ impl Terminal {
 
     fn ask_new_todo(&mut self) -> Todo {
         println!("Write your new todo:");
-        Todo::new(Self::input(self))
+        Todo::new(self.input())
     }
 
     fn show_todo(&mut self, todo: &Todo) {
-        println!("New todo added!");
         writeln!(self.stdout, "[ ] - {}", todo.message).unwrap()
     }
 
-    fn ask_user_intention(&mut self) -> String {
+    fn user_intention(&mut self) -> bool {
         println!("Do you want to input a new todo? (y/n)");
-        return Self::input(self)
+        if Self::input(self) == "y" {
+            return true;
+        }
+        false
     }
 
     fn input(&mut self) -> String {
@@ -47,15 +49,14 @@ impl Terminal {
 }
 
 fn main() {
+    let mut stdin = Terminal::new();
     loop {
-        let mut stdin = Terminal::new();
-        
-        if stdin.ask_user_intention() == "y" {
+        if stdin.user_intention() {
             let new_todo = stdin.ask_new_todo();
             stdin.show_todo(&new_todo);
         } else {
             println!("Ok, quitting now.");
-            std::process::exit(0);
+            break;
         }
     }
 }
