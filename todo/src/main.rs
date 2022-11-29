@@ -1,5 +1,3 @@
-use std::io;
-
 fn main() {
     ask_user_input();
 }
@@ -11,13 +9,10 @@ fn input() -> String {
 }
 
 fn ask_user_input() {
-    let mut new_todo = String::new();
     println!("Do you want to input a new todo? (y/n)");
     if input() == "y" {
         println!("Write your new todo:");
-        io::stdin().read_line(&mut new_todo).unwrap();
-        new_todo.trim().to_string();
-
+        let new_todo = input();
         println!("New todo added!");
         println!(" [ ] - {}", new_todo);
         return ask_user_input()
