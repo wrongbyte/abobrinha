@@ -1,21 +1,59 @@
-fn main() {
-    ask_user_input();
+use ::std::io::{Stdin, Stdout, Write};
+
+struct Terminal {
+    stdin: Stdin,
+    stdout: Stdout,
 }
 
-fn input() -> String {
-    let mut buf = String::new();
-    std::io::stdin().read_line(&mut buf).unwrap();
-    buf.trim().to_string()
+#[derive(Debug, Clone)]
+struct Todo {
+    message: String,
 }
 
-fn ask_user_input() {
-    println!("Do you want to input a new todo? (y/n)");
-    if input() == "y" {
+impl Todo {
+    fn new(message: String) -> Self {
+        Todo { message }
+    }
+}
+
+impl Terminal {
+    fn new() -> Self {
+        Terminal {
+            stdin: std::io::stdin(),
+            stdout: std::io::stdout(),
+        }
+    }
+
+    fn ask_new_todo(&mut self) -> Todo {
         println!("Write your new todo:");
-        let new_todo = input();
-        println!("New todo added!");
-        println!(" [ ] - {}", new_todo);
-        return ask_user_input()
-    } 
-    println!("Ok, quitting now.")
+        Todo::new(self.input())
+    }
+
+    fn show_todo(&mut self, todo: &Todo) {
+        writeln!(self.stdout, "[ ] - {}", todo.message).unwrap()
+    }
+
+    fn user_intention(&mut self) -> bool {
+        println!("Do you want to input a new todo? (y/n)");
+        self.input() == "y"
+    }
+
+    fn input(&mut self) -> String {
+        let mut buf = String::new();
+        self.stdin.read_line(&mut buf).unwrap();
+        buf.trim().to_string()
+    }
+}
+
+fn main() {
+    let mut stdin = Terminal::new();
+    loop {
+        if stdin.user_intention() {
+            let new_todo = stdin.ask_new_todo();
+            stdin.show_todo(&new_todo);
+        } else {
+            println!("Ok, quitting now.");
+            break;
+        }
+    }
 }
