@@ -35,10 +35,7 @@ impl Terminal {
 
     fn user_intention(&mut self) -> bool {
         println!("Do you want to input a new todo? (y/n)");
-        if Self::input(self) == "y" {
-            return true;
-        }
-        false
+        self.input() == "y"
     }
 
     fn input(&mut self) -> String {
