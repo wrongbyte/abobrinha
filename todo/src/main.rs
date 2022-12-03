@@ -32,11 +32,10 @@ impl Terminal {
 
     fn ask_new_todo(&mut self) -> Option<Todo> {
         println!("Write your new todo:");
-        let input = self.input();
-        match input {
+        match self.input() {
             Ok(user_input) => {
                 if user_input.is_empty() {
-                    return None;
+                    None;
                 }
                 Some(Todo::new(user_input))
             },
@@ -70,8 +69,7 @@ impl Terminal {
     }
 
     fn ask_and_print_todo(&mut self) -> Result<(), TerminalError> {
-        let new_todo = self.ask_new_todo();
-        match new_todo {
+        match self.ask_new_todo() {
             Some(todo) => Ok(self.show_todo(&todo))?,
             None => Ok(println!("Please input a valid todo.")),
         }
