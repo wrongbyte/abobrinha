@@ -35,7 +35,7 @@ impl Terminal {
         match self.input() {
             Ok(user_input) => {
                 if user_input.is_empty() {
-                    None;
+                    return None;
                 }
                 Some(Todo::new(user_input))
             },
