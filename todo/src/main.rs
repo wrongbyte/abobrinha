@@ -32,15 +32,13 @@ impl Terminal {
 
     fn ask_new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
         println!("Write your new todo:");
-        self.input()
-        .map(|user_input| {
+        self.input().map(|user_input| {
             if user_input.is_empty() {
                 None
             } else {
                 Some(Todo::new(user_input))
             }
         })
-
     }
 
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
@@ -85,12 +83,8 @@ fn main() {
     let mut stdin = Terminal::new();
     loop {
         if stdin.user_intention() {
-            if let Ok(_) = stdin.ask_and_print_todo() {
-            } else {
-            }
-            match stdin.ask_and_print_todo() {
-                Ok(_) => (),
-                Err(err) => println!("Error: {:?}", err),
+            if let Err(error) = stdin.ask_and_print_todo() {
+                println!("Error: {:?}", error)
             }
         } else {
             println!("Ok, quitting now.");
