@@ -30,48 +30,53 @@ impl Terminal {
         }
     }
 
-    fn ask_new_todo(&mut self) -> Option<Todo> {
+    fn ask_new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
         println!("Write your new todo:");
-        match self.input() {
-            Ok(user_input) => {
-                if user_input.is_empty() {
-                    return None;
-                }
+        self.input()
+        .map(|user_input| {
+            if user_input.is_empty() {
+                None
+            } else {
                 Some(Todo::new(user_input))
-            },
-            Err(_) => None
-        }
- 
+            }
+        })
+
     }
 
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
-        match writeln!(self.stdout, "[ ] - {}", todo.message) {
-            Ok(_) => Ok(()),
-            Err(err) => Err(TerminalError::Stdout(err))
-        }
+        writeln!(self.stdout, "[ ] - {}", todo.message)
+            .map_err(|error| TerminalError::Stdout(error))
     }
 
     fn user_intention(&mut self) -> bool {
         println!("Do you want to input a new todo? (y/n)");
         let user_input = self.input();
         if let Ok(input) = user_input {
-            return input == "y"
-        } 
-        false
+            input == "y"
+        } else {
+            false
+        }
     }
 
     fn input(&mut self) -> Result<String, TerminalError> {
         let mut buf = String::new();
-        match self.stdin.read_line(&mut buf) {
-            Ok(_) => Ok(buf.trim().to_string()),
-            Err(error) => Err(TerminalError::Stdin(error)),
-        }
+        self.stdin
+            .read_line(&mut buf)
+            .map_err(|error| TerminalError::Stdin(error))
+            .map(|_| buf.trim().to_string())
     }
 
     fn ask_and_print_todo(&mut self) -> Result<(), TerminalError> {
         match self.ask_new_todo() {
-            Some(todo) => Ok(self.show_todo(&todo))?,
-            None => Ok(println!("Please input a valid todo.")),
+            Ok(Some(todo)) => self.show_todo(&todo),
+            Ok(None) => {
+                println!("Please input a valid todo.");
+                Ok(())
+            }
+            Err(err) => {
+                println!("Error: {:?}", err);
+                Ok(())
+            }
         }
     }
 }
@@ -80,9 +85,12 @@ fn main() {
     let mut stdin = Terminal::new();
     loop {
         if stdin.user_intention() {
+            if let Ok(_) = stdin.ask_and_print_todo() {
+            } else {
+            }
             match stdin.ask_and_print_todo() {
                 Ok(_) => (),
-                Err(err) => println!("Error: {:?}", err)
+                Err(err) => println!("Error: {:?}", err),
             }
         } else {
             println!("Ok, quitting now.");
