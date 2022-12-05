@@ -49,11 +49,7 @@ impl Terminal {
     fn user_intention(&mut self) -> bool {
         println!("Do you want to input a new todo? (y/n)");
         let user_input = self.input();
-        if let Ok(input) = user_input {
-            input == "y"
-        } else {
-            false
-        }
+        matches!(user_input, Ok(input) if input == "y")
     }
 
     fn input(&mut self) -> Result<String, TerminalError> {
@@ -65,17 +61,13 @@ impl Terminal {
     }
 
     fn ask_and_print_todo(&mut self) -> Result<(), TerminalError> {
-        match self.ask_new_todo() {
-            Ok(Some(todo)) => self.show_todo(&todo),
-            Ok(None) => {
-                println!("Please input a valid todo.");
-                Ok(())
-            }
-            Err(err) => {
-                println!("Error: {:?}", err);
-                Ok(())
-            }
+        let todo = self.ask_new_todo();
+        if let Ok(Some(todo)) = todo {
+            self.show_todo(&todo)?;
+        } else {
+            println!("Please input a valid todo.");
         }
+        Ok(())
     }
 }
 
