@@ -31,17 +31,18 @@ impl Terminal {
     }
 
     fn ask_new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
-        if self.user_intention() {
-            println!("Write your new todo:");
-            let user_input = self.input()?;
-            
-            if user_input.is_empty() {
-                return Ok(None)
-            } else {
-                return Ok(Some(Todo::new(user_input)))
-            }
-        } 
-        Ok(None)
+        if !self.user_intention() {
+            return Ok(None);
+        }
+
+        println!("Write your new todo:");
+        let user_input = self.input()?;
+
+        if user_input.is_empty() {
+            return Ok(None);
+        } else {
+            return Ok(Some(Todo::new(user_input)));
+        }
     }
 
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
@@ -64,20 +65,24 @@ impl Terminal {
     }
 }
 
-fn main() {
-    let mut stdin = Terminal::new();
+fn run(stdin: &mut Terminal) -> Result<(), TerminalError>{
     loop {
         let todo = stdin.ask_new_todo();
         if let Ok(Some(todo)) = todo {
-            if let Err(error) = stdin.show_todo(&todo) {
-                println!("Error: {:?}", error)
-            }
+            stdin.show_todo(&todo)?;
         } else {
             if let Ok(None) = todo {
                 println!("Ok, quitting now.");
-                break
+                break;
             }
-            println!("Please input a valid todo.");
-        } 
+        }
+    }
+    Ok(())
+}
+
+fn main() {
+    let mut stdin = Terminal::new();
+    if let Err(error) = run(&mut stdin) {
+        println!("Error: {:?}", error)
     }
 }
