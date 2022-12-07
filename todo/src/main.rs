@@ -68,17 +68,10 @@ impl Terminal {
 
 fn run() -> Result<(), TerminalError> {
     let mut terminal = Terminal::new();
-    loop {
-        let todo = terminal.ask_new_todo();
-        if let Ok(Some(todo)) = todo {
-            terminal.show_todo(&todo)?;
-        } else {
-            if let Ok(None) = todo {
-                println!("Ok, quitting now.");
-                break;
-            }
-        }
+    while let Ok(Some(todo)) = terminal.ask_new_todo() {
+        terminal.show_todo(&todo)?;
     }
+    println!("Ok, quitting now.");
     Ok(())
 }
 
