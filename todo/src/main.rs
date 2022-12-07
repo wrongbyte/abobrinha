@@ -66,11 +66,12 @@ impl Terminal {
     }
 }
 
-fn run(stdin: &mut Terminal) -> Result<(), TerminalError> {
+fn run() -> Result<(), TerminalError> {
+    let mut terminal = Terminal::new();
     loop {
-        let todo = stdin.ask_new_todo();
+        let todo = terminal.ask_new_todo();
         if let Ok(Some(todo)) = todo {
-            stdin.show_todo(&todo)?;
+            terminal.show_todo(&todo)?;
         } else {
             if let Ok(None) = todo {
                 println!("Ok, quitting now.");
@@ -82,8 +83,7 @@ fn run(stdin: &mut Terminal) -> Result<(), TerminalError> {
 }
 
 fn main() {
-    let mut stdin = Terminal::new();
-    if let Err(error) = run(&mut stdin) {
+    if let Err(error) = run() {
         println!("Error: {:?}", error)
     }
 }
