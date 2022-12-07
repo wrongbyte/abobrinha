@@ -42,7 +42,7 @@ impl Terminal {
             println!("Please input a valid todo.");
             self.ask_new_todo()
         } else {
-            return Ok(Some(Todo::new(user_input)));
+            Ok(Some(Todo::new(user_input)))
         }
     }
 
