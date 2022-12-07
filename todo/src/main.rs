@@ -39,7 +39,8 @@ impl Terminal {
         let user_input = self.input()?;
 
         if user_input.is_empty() {
-            return Ok(None);
+            println!("Please input a valid todo.");
+            self.ask_new_todo()
         } else {
             return Ok(Some(Todo::new(user_input)));
         }
@@ -65,7 +66,7 @@ impl Terminal {
     }
 }
 
-fn run(stdin: &mut Terminal) -> Result<(), TerminalError>{
+fn run(stdin: &mut Terminal) -> Result<(), TerminalError> {
     loop {
         let todo = stdin.ask_new_todo();
         if let Ok(Some(todo)) = todo {
