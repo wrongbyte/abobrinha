@@ -31,7 +31,7 @@ impl Terminal {
     }
 
     fn ask_new_todo(&mut self) -> Result<Option<Todo>, TerminalError> {
-        if !self.user_intention() {
+        if !self.user_intention()? {
             return Ok(None);
         }
 
@@ -39,7 +39,7 @@ impl Terminal {
         let user_input = self.input()?;
 
         if user_input.is_empty() {
-            println!("Please input a valid todo.");
+            self.write_stdout("Please input a valid todo.")?;
             self.ask_new_todo()
         } else {
             Ok(Some(Todo::new(user_input)))
@@ -47,14 +47,13 @@ impl Terminal {
     }
 
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
-        writeln!(self.stdout, "[ ] - {}", todo.message)
-            .map_err(|error| TerminalError::Stdout(error))
+        self.write_stdout(&format!("[ ] - {}", todo.message).to_string())
     }
 
-    fn user_intention(&mut self) -> bool {
-        println!("Do you want to input a new todo? (y/n)");
+    fn user_intention(&mut self) -> Result<bool, TerminalError> {
+        self.write_stdout("Do you want to input a new todo? (y/n)")?;
         let user_input = self.input();
-        matches!(user_input, Ok(input) if input == "y")
+        Ok(matches!(user_input, Ok(input) if input == "y"))
     }
 
     fn input(&mut self) -> Result<String, TerminalError> {
@@ -63,6 +62,11 @@ impl Terminal {
             .read_line(&mut buf)
             .map_err(|error| TerminalError::Stdin(error))
             .map(|_| buf.trim().to_string())
+    }
+
+    fn write_stdout(&mut self, string: &str) -> Result<(), TerminalError> {
+        writeln!(self.stdout, "{}", string)
+            .map_err(|error| TerminalError::Stdout(error))
     }
 }
 
