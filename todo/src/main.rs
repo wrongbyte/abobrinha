@@ -55,7 +55,7 @@ impl Terminal {
     }
 
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
-        self.write_stdout(&format!("[ ] - {}", todo.message).to_string())
+        self.write_stdout(&format!("[ ] - {}", todo.message))
     }
 
     fn user_intention(&mut self) -> Result<bool, TerminalError> {
@@ -68,13 +68,13 @@ impl Terminal {
         let mut buf = String::new();
         self.stdin
             .read_line(&mut buf)
-            .map_err(|error| TerminalError::Stdin(error))
+            .map_err(TerminalError::Stdin)
             .map(|_| buf.trim().to_string())
     }
 
     fn write_stdout(&mut self, string: &str) -> Result<(), TerminalError> {
         writeln!(self.stdout, "{}", string)
-            .map_err(|error| TerminalError::Stdout(error))
+            .map_err(TerminalError::Stdout)
     }
 }
 
