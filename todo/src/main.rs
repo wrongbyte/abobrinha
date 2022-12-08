@@ -10,6 +10,14 @@ enum TerminalError {
     Stdout(Error),
     Stdin(Error),
 }
+impl TerminalError {
+    fn format_error(error: TerminalError) -> String {
+        match error {
+            TerminalError::Stdin(error) => format!("Input error: {}", error),
+            TerminalError::Stdout(error) => format!("Input error: {}", error)
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 struct Todo {
@@ -81,6 +89,6 @@ fn run() -> Result<(), TerminalError> {
 
 fn main() {
     if let Err(error) = run() {
-        println!("Error: {:?}", error)
+        println!("{}", TerminalError::format_error(error))
     }
 }
