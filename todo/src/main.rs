@@ -35,7 +35,7 @@ impl Terminal {
             return Ok(None);
         }
 
-        println!("Write your new todo:");
+        self.write_stdout("Write your new todo:")?;
         let user_input = self.input()?;
 
         if user_input.is_empty() {
@@ -75,7 +75,7 @@ fn run() -> Result<(), TerminalError> {
     while let Ok(Some(todo)) = terminal.ask_new_todo() {
         terminal.show_todo(&todo)?;
     }
-    println!("Ok, quitting now.");
+    terminal.write_stdout("Ok, quitting now.")?;
     Ok(())
 }
 
