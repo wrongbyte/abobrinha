@@ -10,9 +10,10 @@ enum TerminalError {
     Stdout(Error),
     Stdin(Error),
 }
+
 impl TerminalError {
-    fn format_error(error: TerminalError) -> String {
-        match error {
+    fn format_error(&self) -> String {
+        match self {
             TerminalError::Stdin(error) => format!("Input error: {}", error),
             TerminalError::Stdout(error) => format!("Input error: {}", error)
         }
@@ -89,6 +90,6 @@ fn run() -> Result<(), TerminalError> {
 
 fn main() {
     if let Err(error) = run() {
-        println!("{}", TerminalError::format_error(error))
+        println!("{}", error.format_error())
     }
 }
