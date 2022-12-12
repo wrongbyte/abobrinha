@@ -1,6 +1,7 @@
 mod terminal;
 mod todo;
-use terminal::{Terminal, TerminalError};
+use terminal::{Terminal};
+use terminal::error::TerminalError;
 
 fn run() -> Result<(), TerminalError> {
     let mut terminal = Terminal::new();

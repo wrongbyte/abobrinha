@@ -1,24 +1,11 @@
-use std::io::{Error, Stdin, Stdout, Write};
+pub(crate) mod error;
+use error::TerminalError;
+use std::io::{Stdin, Stdout, Write};
 use crate::todo::Todo;
 
 pub struct Terminal {
     stdin: Stdin,
     stdout: Stdout,
-}
-
-#[derive(Debug)]
-pub enum TerminalError {
-    Stdout(Error),
-    Stdin(Error),
-}
-
-impl TerminalError {
-    pub fn format_error(&self) -> String {
-        match self {
-            TerminalError::Stdin(error) => format!("Input error: {}", error),
-            TerminalError::Stdout(error) => format!("Input error: {}", error),
-        }
-    }
 }
 
 impl Terminal {
