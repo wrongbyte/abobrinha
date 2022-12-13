@@ -1,8 +1,8 @@
-mod terminal;
-mod todo;
 use terminal::{Terminal};
 use terminal::error::TerminalError;
 use console::{style};
+mod terminal;
+mod todo;
 
 fn run() -> Result<(), TerminalError> {
     let mut terminal = Terminal::new();

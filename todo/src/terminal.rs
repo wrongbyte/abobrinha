@@ -1,8 +1,8 @@
-pub(crate) mod error;
 use error::TerminalError;
 use std::io::{Stdin, Stdout, Write};
 use crate::todo::Todo;
 use console::{style};
+pub(crate) mod error;
 
 pub struct Terminal {
     stdin: Stdin,
