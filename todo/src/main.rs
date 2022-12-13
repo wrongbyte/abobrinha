@@ -1,5 +1,4 @@
-use terminal::{Terminal};
-use terminal::error::TerminalError;
+use crate::terminal::{Terminal, error::TerminalError};
 use console::{style};
 mod terminal;
 mod todo;
