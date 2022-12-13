@@ -22,11 +22,11 @@ impl Terminal {
             return Ok(None);
         }
 
-        self.write_stdout("Write your new todo:")?;
+        self.write_stdout(&style("Write your new todo:").blue().to_string())?;
         let user_input = self.input()?;
 
         if user_input.is_empty() {
-            self.write_stdout("Please input a valid todo.")?;
+            self.write_stdout(&style("Please input a valid todo.").red().to_string())?;
             self.ask_new_todo()
         } else {
             Ok(Some(Todo::new(user_input)))
@@ -34,11 +34,12 @@ impl Terminal {
     }
 
     pub fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
-        self.write_stdout(&format!("[ ] - {}", todo.message),)
+        let formatted_msg = format!("[ ] - {}", todo.message);
+        self.write_stdout(&style(formatted_msg).green().to_string())
     }
 
     fn user_intention(&mut self) -> Result<bool, TerminalError> {
-        self.write_stdout("Do you want to input a new todo? (y/n)")?;
+        self.write_stdout(&style("Do you want to input a new todo? (y/n)").blue().to_string())?;
         let user_input = self.input();
         Ok(matches!(user_input, Ok(input) if input == "y"))
     }
