@@ -1,9 +1,10 @@
-use std::io::{Error};
+use std::{io::Error, num::ParseIntError};
 
 #[derive(Debug)]
 pub enum TerminalError {
     Stdout(Error),
     Stdin(Error),
+    ParseInt(ParseIntError),
 }
 
 impl TerminalError {
@@ -11,6 +12,7 @@ impl TerminalError {
         match self {
             TerminalError::Stdin(error) => format!("Input error: {}", error),
             TerminalError::Stdout(error) => format!("Input error: {}", error),
+            TerminalError::ParseInt(error) => format!("ParseInt error: {}", error),
         }
     }
 }

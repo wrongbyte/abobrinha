@@ -8,7 +8,7 @@ mod todos;
 fn run() -> Result<(), TerminalError> {
     let mut terminal = Terminal::new();
     let mut todo_list = Todos::new();
-    while let Ok(Some(todo)) = terminal.ask_new_todo(&mut todo_list) {
+    while let Some(todo) = terminal.ask_new_todo(&mut todo_list)? {
         todo_list.push_new_todo(todo.clone());
         terminal.write_stdout(&style("Your current todo list is:").green().to_string())?;
         for todo in &todo_list.list {

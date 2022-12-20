@@ -1,7 +1,10 @@
+use crate::{todo::Todo, todos::Todos};
+use console::style;
 use error::TerminalError;
-use std::io::{Stdin, Stdout, Write};
-use crate::{todo::{Todo}, todos::Todos};
-use console::{style};
+use std::{
+    io::{Stdin, Stdout, Write},
+    usize,
+};
 pub(crate) mod error;
 
 pub struct Terminal {
@@ -14,7 +17,7 @@ pub enum UserOptions {
     RemoveTodo(usize),
     ClearList,
     Quit,
-    Help
+    Help,
 }
 
 impl Terminal {
@@ -26,21 +29,24 @@ impl Terminal {
     }
 
     pub fn ask_new_todo(&mut self, todo_list: &mut Todos) -> Result<Option<Todo>, TerminalError> {
-
         match self.user_intention()? {
             UserOptions::Quit => return Ok(None),
             UserOptions::RemoveTodo(index) => {
                 todo_list.remove_todo(index);
                 self.write_stdout(&style("Successfully removed todo.").yellow().to_string())?;
                 self.user_intention()?;
-            },
+            }
             UserOptions::ClearList => {
                 todo_list.list.clear();
-                self.write_stdout(&style("Successfully cleared all todos.").yellow().to_string())?;
+                self.write_stdout(
+                    &style("Successfully cleared all todos.")
+                        .yellow()
+                        .to_string(),
+                )?;
                 self.user_intention()?;
-            },
+            }
             UserOptions::Help => self.show_help()?,
-            _ => ()
+            _ => (),
         }
 
         self.write_stdout(&style("Write your new todo:").blue().to_string())?;
@@ -64,15 +70,19 @@ impl Terminal {
         let user_input = self.input()?;
 
         if user_input.starts_with("rm ") {
-            let index = user_input.split(' ').collect::<Vec<&str>>()[1].to_string().parse().unwrap();
-            return Ok(UserOptions::RemoveTodo(index))
+            let index = user_input.split(' ').collect::<Vec<&str>>()[1]
+                .to_string()
+                .parse::<usize>()
+                .map_err(TerminalError::ParseInt)?;
+
+            return Ok(UserOptions::RemoveTodo(index));
         }
 
         match user_input.as_str() {
             "help" => Ok(UserOptions::Help),
             "y" => Ok(UserOptions::NewTodo),
             "clear" => Ok(UserOptions::ClearList),
-            _ => Ok(UserOptions::Quit)
+            _ => Ok(UserOptions::Quit),
         }
     }
 
@@ -85,16 +95,27 @@ impl Terminal {
     }
 
     pub fn write_stdout(&mut self, string: &str) -> Result<(), TerminalError> {
-        writeln!(self.stdout, "{}", string)
-            .map_err(TerminalError::Stdout)
+        writeln!(self.stdout, "{}", string).map_err(TerminalError::Stdout)
     }
-    
+
     pub fn show_help(&mut self) -> Result<(), TerminalError> {
-        self.write_stdout(&style("====== LIST OF COMMANDS =======").yellow().to_string())?;
+        self.write_stdout(
+            &style("====== LIST OF COMMANDS =======")
+                .yellow()
+                .to_string(),
+        )?;
         self.write_stdout("")?;
-        self.write_stdout(&style("⭐️ To add a new todo, type y when asked, type your todo and press enter. ⭐️").yellow().to_string())?;
+        self.write_stdout(
+            &style("⭐️ To add a new todo, type y when asked, type your todo and press enter. ⭐️")
+                .yellow()
+                .to_string(),
+        )?;
         self.write_stdout(&style("⭐️ To remove a todo, type \"rm n\", being \"n\" the index of the todo in the list. ⭐️").yellow().to_string())?;
-        self.write_stdout(&style("⭐️ To clear the list of todos, type \"clear\" ⭐️").yellow().to_string())?;
+        self.write_stdout(
+            &style("⭐️ To clear the list of todos, type \"clear\" ⭐️")
+                .yellow()
+                .to_string(),
+        )?;
         self.user_intention()?;
         Ok(())
     }
