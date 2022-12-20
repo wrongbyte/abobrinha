@@ -39,9 +39,12 @@ impl Terminal {
     }
 
     fn user_intention(&mut self) -> Result<bool, TerminalError> {
-        self.write_stdout(&style("Do you want to input a new todo? (y/n)").blue().to_string())?;
-        let user_input = self.input();
-        Ok(matches!(user_input, Ok(input) if input == "y"))
+        self.write_stdout(&style("Do you want to input a new todo? Type \"y\" to add a new todo or \"help\" to see all commands.").blue().to_string())?;
+        let user_input = self.input()?;
+        if user_input == "help" {
+            self.show_help()?;
+        }
+        Ok(user_input == "y")
     }
 
     fn input(&mut self) -> Result<String, TerminalError> {
@@ -55,5 +58,15 @@ impl Terminal {
     pub fn write_stdout(&mut self, string: &str) -> Result<(), TerminalError> {
         writeln!(self.stdout, "{}", string)
             .map_err(TerminalError::Stdout)
+    }
+    
+    pub fn show_help(&mut self) -> Result<(), TerminalError> {
+        self.write_stdout(&style("====== WELCOME =======").yellow().to_string())?;
+        self.write_stdout("")?;
+        self.write_stdout(&style("⭐️ To add a new todo, type y when asked, type your todo and press enter. ⭐️").yellow().to_string())?;
+        self.write_stdout(&style("⭐️ To remove a todo, type \"rm n\", being \"n\" the index of the todo in the list. ⭐️").yellow().to_string())?;
+        self.write_stdout(&style("⭐️ To clear the list of todos, type \"clear\" ⭐️").yellow().to_string())?;
+        self.user_intention()?;
+        Ok(())
     }
 }
