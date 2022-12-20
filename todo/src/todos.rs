@@ -13,4 +13,12 @@ impl Todos {
     pub fn push_new_todo (&mut self, todo: Todo) {
         self.list.push(todo)
     }
+
+    pub fn remove_todo (&mut self, index_todo: usize) {
+        if self.list.get(index_todo).is_some() {
+            self.list.remove(index_todo);
+        } else {
+            panic!("Index not found")
+        }
+    }
 }
