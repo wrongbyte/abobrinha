@@ -18,6 +18,7 @@ pub enum UserOptions {
     ClearList,
     Quit,
     Help,
+    Unrecognized
 }
 
 impl Terminal {
@@ -46,7 +47,8 @@ impl Terminal {
                 self.user_intention()?;
             }
             UserOptions::Help => self.show_help()?,
-            _ => (),
+            UserOptions::NewTodo => (),
+            _ => self.write_stdout(&style("Invalid option. Please type again").red().to_string())?,
         }
 
         self.write_stdout(&style("Write your new todo:").blue().to_string())?;
@@ -80,7 +82,8 @@ impl Terminal {
             "help" => Ok(UserOptions::Help),
             "y" => Ok(UserOptions::NewTodo),
             "clear" => Ok(UserOptions::ClearList),
-            _ => Ok(UserOptions::Quit),
+            "quit" => Ok(UserOptions::Quit),
+            _ => Ok(UserOptions::Unrecognized),
         }
     }
 
