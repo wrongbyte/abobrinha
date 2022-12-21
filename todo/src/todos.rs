@@ -16,7 +16,7 @@ impl Todos {
     }
 
     pub fn remove_todo (&mut self, index_todo: usize) -> Result<(), TerminalError> {
-        if self.list.get(index_todo).is_some() {
+        if index_todo < self.list.len() {
             self.list.remove(index_todo);
             Ok(())
         } else {

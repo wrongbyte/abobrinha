@@ -69,13 +69,11 @@ impl Terminal {
         self.write_stdout(&style("Do you want to input a new todo? Type \"y\" to add a new todo or \"help\" to see all commands.").blue().to_string())?;
         let user_input = self.input()?;
 
-        if user_input.starts_with("rm ") {
-            let index = user_input.split(' ').collect::<Vec<&str>>()[1]
-                .to_string()
-                .parse::<usize>()
-                .map_err(TerminalError::ParseInt)?;
+        if let Some(index) = user_input.strip_prefix("rm ") {
+            let parsed_i = index.parse::<usize>()
+            .map_err(|_| TerminalError::ParseInt(index.to_string()))?;
 
-            return Ok(UserOptions::RemoveTodo(index));
+            return Ok(UserOptions::RemoveTodo(parsed_i));
         }
 
         match user_input.as_str() {
