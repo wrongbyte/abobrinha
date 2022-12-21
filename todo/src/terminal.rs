@@ -32,7 +32,7 @@ impl Terminal {
         match self.user_intention()? {
             UserOptions::Quit => return Ok(None),
             UserOptions::RemoveTodo(index) => {
-                todo_list.remove_todo(index);
+                todo_list.remove_todo(index)?;
                 self.write_stdout(&style("Successfully removed todo.").yellow().to_string())?;
                 self.user_intention()?;
             }
