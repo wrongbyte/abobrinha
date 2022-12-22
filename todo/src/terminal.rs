@@ -88,7 +88,7 @@ impl Terminal {
 
         if let Some(index) = user_input.strip_prefix("rm ") {
             let parsed_i = index
-                .parse::<usize>()
+                .parse()
                 .map_err(|_| TerminalError::ParseInt(index.to_string()))?;
             return Ok(UserOptions::RemoveTodo(parsed_i));
         }
