@@ -51,7 +51,7 @@ impl Terminal {
         self.write_stdout(&style("Invalid option. Please type again").red().to_string())
     }
 
-    pub fn clear_todo(&mut self) -> Result<(), TerminalError> {
+    pub fn clear_todo_message(&mut self) -> Result<(), TerminalError> {
         self.write_stdout(
             &style("Successfully cleared all todos.")
                 .yellow()
@@ -72,7 +72,7 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn remove_todo(
+    pub fn remove_todo_message(
         &mut self,
     ) -> Result<(), TerminalError> {
         self.write_stdout(&style("Successfully removed todo.").yellow().to_string())
