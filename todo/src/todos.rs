@@ -1,5 +1,4 @@
 use crate::{todo::Todo, terminal::error::TerminalError};
-use std::io::{Error, ErrorKind};
 
 pub struct Todos {
     pub list: Vec<Todo>
@@ -20,8 +19,7 @@ impl Todos {
             self.list.remove(index_todo);
             Ok(())
         } else {
-            let custom_error = Error::new(ErrorKind::Other, "Index out of bounds!");
-            Err(TerminalError::Stdin(custom_error))
+            Err(TerminalError::IndexError)
         }
     }
 }
