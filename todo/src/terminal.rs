@@ -13,7 +13,7 @@ pub struct Terminal {
 }
 
 pub enum UserOptions {
-    NewTodo,
+    NewTodo(Todo),
     RemoveTodo(usize),
     ClearList,
     Quit,
@@ -29,36 +29,15 @@ impl Terminal {
         }
     }
 
-    pub fn ask_new_todo(&mut self, todo_list: &mut Todos) -> Result<Option<Todo>, TerminalError> {
-        match self.user_intention()? {
-            UserOptions::Quit => return Ok(None),
-            UserOptions::RemoveTodo(index) => {
-                todo_list.remove_todo(index)?;
-                self.write_stdout(&style("Successfully removed todo.").yellow().to_string())?;
-                self.user_intention()?;
-            }
-            UserOptions::ClearList => {
-                todo_list.list.clear();
-                self.write_stdout(
-                    &style("Successfully cleared all todos.")
-                        .yellow()
-                        .to_string(),
-                )?;
-                self.user_intention()?;
-            }
-            UserOptions::Help => self.show_help()?,
-            UserOptions::NewTodo => (),
-            _ => self.write_stdout(&style("Invalid option. Please type again").red().to_string())?,
-        }
-
+    pub fn prompt_new_todo(&mut self, todo_list: &mut Todos) -> Result<Todo, TerminalError> {
         self.write_stdout(&style("Write your new todo:").blue().to_string())?;
         let user_input = self.input()?;
 
         if user_input.is_empty() {
             self.write_stdout(&style("Please input a valid todo.").red().to_string())?;
-            self.ask_new_todo(todo_list)
+            self.prompt_new_todo(todo_list)
         } else {
-            Ok(Some(Todo::new(user_input)))
+            Ok(Todo::new(user_input))
         }
     }
 
@@ -67,20 +46,51 @@ impl Terminal {
         self.write_stdout(&style(formatted_msg).green().to_string())
     }
 
-    fn user_intention(&mut self) -> Result<UserOptions, TerminalError> {
+    pub fn alert_unrecognized(&mut self) -> Result<(), TerminalError> {
+        self.write_stdout(&style("Invalid option. Please type again").red().to_string())
+    }
+
+    pub fn clear_todo(&mut self, todo_list: &mut Todos) -> Result<(), TerminalError> {
+        todo_list.list.clear();
+        self.write_stdout(
+            &style("Successfully cleared all todos.")
+                .yellow()
+                .to_string(),
+        )?;
+        Ok(())
+    }
+
+    pub fn remove_todo(&mut self, todo_list: &mut Todos, index: usize) -> Result<(), TerminalError> {
+        todo_list.remove_todo(index)?;
+        self.write_stdout(&style("Successfully removed todo.").yellow().to_string())
+    }
+
+    pub fn get_new_todo_or_quit(&mut self, todo_list: &mut Todos) -> Result<Option<Todo>, TerminalError> {
+        match self.user_intention(todo_list)? {
+            UserOptions::Quit => return Ok(None),
+            UserOptions::NewTodo(todo) => return Ok(Some(todo)),
+            UserOptions::Help => self.show_help(todo_list)?,
+            UserOptions::ClearList => self.clear_todo(todo_list)?,
+            UserOptions::RemoveTodo(index) => self.remove_todo(todo_list, index)?,
+            UserOptions::Unrecognized => self.alert_unrecognized()?
+        };
+        self.get_new_todo_or_quit(todo_list)
+    }
+
+    pub fn user_intention(&mut self, todo_list: &mut Todos) -> Result<UserOptions, TerminalError> {
         self.write_stdout(&style("Do you want to input a new todo? Type \"y\" to add a new todo or \"help\" to see all commands.").blue().to_string())?;
         let user_input = self.input()?;
 
         if let Some(index) = user_input.strip_prefix("rm ") {
-            let parsed_i = index.parse::<usize>()
-            .map_err(|_| TerminalError::ParseInt(index.to_string()))?;
-
+            let parsed_i = index
+                .parse::<usize>()
+                .map_err(|_| TerminalError::ParseInt(index.to_string()))?;
             return Ok(UserOptions::RemoveTodo(parsed_i));
         }
 
         match user_input.as_str() {
+            "y" => Ok(UserOptions::NewTodo(self.prompt_new_todo(todo_list)?)),
             "help" => Ok(UserOptions::Help),
-            "y" => Ok(UserOptions::NewTodo),
             "clear" => Ok(UserOptions::ClearList),
             "quit" => Ok(UserOptions::Quit),
             _ => Ok(UserOptions::Unrecognized),
@@ -99,7 +109,7 @@ impl Terminal {
         writeln!(self.stdout, "{}", string).map_err(TerminalError::Stdout)
     }
 
-    pub fn show_help(&mut self) -> Result<(), TerminalError> {
+    pub fn show_help(&mut self, todo_list: &mut Todos) -> Result<(), TerminalError> {
         self.write_stdout(
             &style("====== LIST OF COMMANDS =======")
                 .yellow()
@@ -117,7 +127,7 @@ impl Terminal {
                 .yellow()
                 .to_string(),
         )?;
-        self.user_intention()?;
+        self.user_intention(todo_list)?;
         Ok(())
     }
 }
