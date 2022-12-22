@@ -14,13 +14,19 @@ fn run() -> Result<(), TerminalError> {
             UserOptions::Quit => break,
             UserOptions::NewTodo(todo) => {
                 todo_list.push_new_todo(todo.clone());
-                terminal.show_todo_list(&mut todo_list)?
+                terminal.show_todo_list(&todo_list)?
             }
             UserOptions::Help => terminal.show_help()?,
-            UserOptions::ClearList => terminal.clear_todo(&mut todo_list)?,
-            UserOptions::RemoveTodo(index) => terminal.remove_todo(&mut todo_list, index)?,
+            UserOptions::ClearList => {
+                todo_list.list.clear();
+                terminal.clear_todo()?
+            }
+            UserOptions::RemoveTodo(index) => {
+                todo_list.remove_todo(index)?;
+                terminal.remove_todo()?
+            }
             UserOptions::Unrecognized => terminal.alert_unrecognized()?,
-            UserOptions::ShowList => terminal.show_todo_list(&mut todo_list)?
+            UserOptions::ShowList => terminal.show_todo_list(&todo_list)?,
         }
     }
     terminal.write_stdout(&style("Ok, quitting now.").blue().to_string())?;

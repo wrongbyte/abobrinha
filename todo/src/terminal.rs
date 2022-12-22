@@ -51,8 +51,7 @@ impl Terminal {
         self.write_stdout(&style("Invalid option. Please type again").red().to_string())
     }
 
-    pub fn clear_todo(&mut self, todo_list: &mut Todos) -> Result<(), TerminalError> {
-        todo_list.list.clear();
+    pub fn clear_todo(&mut self) -> Result<(), TerminalError> {
         self.write_stdout(
             &style("Successfully cleared all todos.")
                 .yellow()
@@ -61,7 +60,7 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn show_todo_list(&mut self, todo_list: &mut Todos) -> Result<(), TerminalError> {
+    pub fn show_todo_list(&mut self, todo_list: &Todos) -> Result<(), TerminalError> {
         if todo_list.list.is_empty() {
             self.write_stdout(&style("Your current todo list is empty!").green().to_string())?;
         } else {
@@ -75,10 +74,7 @@ impl Terminal {
 
     pub fn remove_todo(
         &mut self,
-        todo_list: &mut Todos,
-        index: usize,
     ) -> Result<(), TerminalError> {
-        todo_list.remove_todo(index)?;
         self.write_stdout(&style("Successfully removed todo.").yellow().to_string())
     }
 
@@ -138,7 +134,6 @@ impl Terminal {
                 .yellow()
                 .to_string(),
         )?;
-        self.user_intention()?;
         Ok(())
     }
 }
