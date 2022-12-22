@@ -30,13 +30,13 @@ impl Terminal {
         }
     }
 
-    pub fn prompt_new_todo(&mut self, todo_list: &mut Todos) -> Result<Todo, TerminalError> {
+    pub fn prompt_new_todo(&mut self) -> Result<Todo, TerminalError> {
         self.write_stdout(&style("Write your new todo:").blue().to_string())?;
         let user_input = self.input()?;
 
         if user_input.is_empty() {
             self.write_stdout(&style("Please input a valid todo.").red().to_string())?;
-            self.prompt_new_todo(todo_list)
+            self.prompt_new_todo()
         } else {
             Ok(Todo::new(user_input))
         }
@@ -82,7 +82,7 @@ impl Terminal {
         self.write_stdout(&style("Successfully removed todo.").yellow().to_string())
     }
 
-    pub fn user_intention(&mut self, todo_list: &mut Todos) -> Result<UserOptions, TerminalError> {
+    pub fn user_intention(&mut self) -> Result<UserOptions, TerminalError> {
         self.write_stdout(&style("Do you want to input a new todo? Type \"y\" to add a new todo or \"help\" to see all commands.").blue().to_string())?;
         let user_input = self.input()?;
 
@@ -94,7 +94,7 @@ impl Terminal {
         }
 
         match user_input.as_str() {
-            "y" => Ok(UserOptions::NewTodo(self.prompt_new_todo(todo_list)?)),
+            "y" => Ok(UserOptions::NewTodo(self.prompt_new_todo()?)),
             "help" => Ok(UserOptions::Help),
             "clear" => Ok(UserOptions::ClearList),
             "quit" => Ok(UserOptions::Quit),
@@ -115,7 +115,7 @@ impl Terminal {
         writeln!(self.stdout, "{}", string).map_err(TerminalError::Stdout)
     }
 
-    pub fn show_help(&mut self, todo_list: &mut Todos) -> Result<(), TerminalError> {
+    pub fn show_help(&mut self) -> Result<(), TerminalError> {
         self.write_stdout(
             &style("====== LIST OF COMMANDS =======")
                 .yellow()
@@ -138,7 +138,7 @@ impl Terminal {
                 .yellow()
                 .to_string(),
         )?;
-        self.user_intention(todo_list)?;
+        self.user_intention()?;
         Ok(())
     }
 }
