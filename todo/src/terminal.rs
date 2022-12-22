@@ -18,7 +18,8 @@ pub enum UserOptions {
     ClearList,
     Quit,
     Help,
-    Unrecognized
+    ShowList,
+    Unrecognized,
 }
 
 impl Terminal {
@@ -60,21 +61,25 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn remove_todo(&mut self, todo_list: &mut Todos, index: usize) -> Result<(), TerminalError> {
-        todo_list.remove_todo(index)?;
-        self.write_stdout(&style("Successfully removed todo.").yellow().to_string())
+    pub fn show_todo_list(&mut self, todo_list: &mut Todos) -> Result<(), TerminalError> {
+        if todo_list.list.is_empty() {
+            self.write_stdout(&style("Your current todo list is empty!").green().to_string())?;
+        } else {
+            self.write_stdout(&style("Your current todo list is:").green().to_string())?;
+            for todo in &todo_list.list {
+                self.show_todo(todo)?;
+            };
+        }
+        Ok(())
     }
 
-    pub fn get_new_todo_or_quit(&mut self, todo_list: &mut Todos) -> Result<Option<Todo>, TerminalError> {
-        match self.user_intention(todo_list)? {
-            UserOptions::Quit => return Ok(None),
-            UserOptions::NewTodo(todo) => return Ok(Some(todo)),
-            UserOptions::Help => self.show_help(todo_list)?,
-            UserOptions::ClearList => self.clear_todo(todo_list)?,
-            UserOptions::RemoveTodo(index) => self.remove_todo(todo_list, index)?,
-            UserOptions::Unrecognized => self.alert_unrecognized()?
-        };
-        self.get_new_todo_or_quit(todo_list)
+    pub fn remove_todo(
+        &mut self,
+        todo_list: &mut Todos,
+        index: usize,
+    ) -> Result<(), TerminalError> {
+        todo_list.remove_todo(index)?;
+        self.write_stdout(&style("Successfully removed todo.").yellow().to_string())
     }
 
     pub fn user_intention(&mut self, todo_list: &mut Todos) -> Result<UserOptions, TerminalError> {
@@ -93,6 +98,7 @@ impl Terminal {
             "help" => Ok(UserOptions::Help),
             "clear" => Ok(UserOptions::ClearList),
             "quit" => Ok(UserOptions::Quit),
+            "list" => Ok(UserOptions::ShowList),
             _ => Ok(UserOptions::Unrecognized),
         }
     }
@@ -124,6 +130,11 @@ impl Terminal {
         self.write_stdout(&style("⭐️ To remove a todo, type \"rm n\", being \"n\" the index of the todo in the list. ⭐️").yellow().to_string())?;
         self.write_stdout(
             &style("⭐️ To clear the list of todos, type \"clear\" ⭐️")
+                .yellow()
+                .to_string(),
+        )?;
+        self.write_stdout(
+            &style("⭐️ To see the list of todos, type \"list\" ⭐️")
                 .yellow()
                 .to_string(),
         )?;

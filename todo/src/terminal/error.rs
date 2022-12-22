@@ -12,7 +12,7 @@ impl TerminalError {
         match self {
             TerminalError::Stdin(error) => format!("Input error: {}", error),
             TerminalError::Stdout(error) => format!("Input error: {}", error),
-            TerminalError::ParseInt(i) => format!("Parse Error: {} is an invalid index", i),
+            TerminalError::ParseInt(i) => format!("Parse Error: \"{}\" is an invalid index!", i),
         }
     }
 }
