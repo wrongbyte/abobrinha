@@ -1,4 +1,4 @@
-use crate::{todo::Todo, todos::Todos};
+use crate::{todo::Todo, todos::TodoStorage};
 use console::style;
 use error::TerminalError;
 use std::{
@@ -22,15 +22,24 @@ pub enum UserOptions {
     Unrecognized,
 }
 
-impl Terminal {
-    pub fn new() -> Self {
-        Terminal {
-            stdin: std::io::stdin(),
-            stdout: std::io::stdout(),
-        }
-    }
+pub trait UserInterface {
+    fn prompt_new_todo(&mut self) -> Result<Todo, TerminalError>;
+    fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError>;
+    fn alert_unrecognized(&mut self) -> Result<(), TerminalError>;
+    fn clear_todo_message(&mut self) -> Result<(), TerminalError>;
+    fn remove_todo_message(&mut self) -> Result<(), TerminalError>;
+    fn user_intention(&mut self) -> Result<UserOptions, TerminalError>;
+    fn input(&mut self) -> Result<String, TerminalError>;
+    fn write_stdout(&mut self, string: &str) -> Result<(), TerminalError>;
+    fn show_help(&mut self) -> Result<(), TerminalError>;
+    fn show_todo_list(
+        &mut self,
+        todo_list: &mut Box<(dyn TodoStorage + 'static)>,
+    ) -> Result<(), TerminalError>;
+}
 
-    pub fn prompt_new_todo(&mut self) -> Result<Todo, TerminalError> {
+impl UserInterface for Terminal {
+    fn prompt_new_todo(&mut self) -> Result<Todo, TerminalError> {
         self.write_stdout(&style("Write your new todo:").blue().to_string())?;
         let user_input = self.input()?;
 
@@ -42,16 +51,16 @@ impl Terminal {
         }
     }
 
-    pub fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
+    fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
         let formatted_msg = format!("[ ] - {}", todo.message);
         self.write_stdout(&style(formatted_msg).green().to_string())
     }
 
-    pub fn alert_unrecognized(&mut self) -> Result<(), TerminalError> {
+    fn alert_unrecognized(&mut self) -> Result<(), TerminalError> {
         self.write_stdout(&style("Invalid option. Please type again").red().to_string())
     }
 
-    pub fn clear_todo_message(&mut self) -> Result<(), TerminalError> {
+    fn clear_todo_message(&mut self) -> Result<(), TerminalError> {
         self.write_stdout(
             &style("Successfully cleared all todos.")
                 .yellow()
@@ -60,25 +69,30 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn show_todo_list(&mut self, todo_list: &Todos) -> Result<(), TerminalError> {
-        if todo_list.list.is_empty() {
-            self.write_stdout(&style("Your current todo list is empty!").green().to_string())?;
+    fn show_todo_list(
+        &mut self,
+        todo_list: &mut Box<(dyn TodoStorage + 'static)>,
+    ) -> Result<(), TerminalError> {
+        if todo_list.is_empty() {
+            self.write_stdout(
+                &style("Your current todo list is empty!")
+                    .green()
+                    .to_string(),
+            )?;
         } else {
             self.write_stdout(&style("Your current todo list is:").green().to_string())?;
-            for todo in &todo_list.list {
+            for todo in todo_list.get_list() {
                 self.show_todo(todo)?;
-            };
+            }
         }
         Ok(())
     }
 
-    pub fn remove_todo_message(
-        &mut self,
-    ) -> Result<(), TerminalError> {
+    fn remove_todo_message(&mut self) -> Result<(), TerminalError> {
         self.write_stdout(&style("Successfully removed todo.").yellow().to_string())
     }
 
-    pub fn user_intention(&mut self) -> Result<UserOptions, TerminalError> {
+    fn user_intention(&mut self) -> Result<UserOptions, TerminalError> {
         self.write_stdout(&style("Do you want to input a new todo? Type \"y\" to add a new todo or \"help\" to see all commands.").blue().to_string())?;
         let user_input = self.input()?;
 
@@ -107,11 +121,11 @@ impl Terminal {
             .map(|_| buf.trim().to_string())
     }
 
-    pub fn write_stdout(&mut self, string: &str) -> Result<(), TerminalError> {
+    fn write_stdout(&mut self, string: &str) -> Result<(), TerminalError> {
         writeln!(self.stdout, "{}", string).map_err(TerminalError::Stdout)
     }
 
-    pub fn show_help(&mut self) -> Result<(), TerminalError> {
+    fn show_help(&mut self) -> Result<(), TerminalError> {
         self.write_stdout(
             &style("====== LIST OF COMMANDS =======")
                 .yellow()
@@ -135,5 +149,14 @@ impl Terminal {
                 .to_string(),
         )?;
         Ok(())
+    }
+}
+
+impl Terminal {
+    pub fn new() -> Self {
+        Terminal {
+            stdin: std::io::stdin(),
+            stdout: std::io::stdout(),
+        }
     }
 }
