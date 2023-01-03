@@ -3,7 +3,7 @@ use console::style;
 use crate::{
     terminal::{error::TerminalError, UserInterface, UserOptions},
     todos::TodoStorage,
-};  
+};
 
 pub(crate) struct TodoCli {
     pub user_interface: Box<dyn UserInterface>,
@@ -29,7 +29,9 @@ impl TodoCli {
                     self.user_interface.remove_todo_message()?
                 }
                 UserOptions::Unrecognized => self.user_interface.alert_unrecognized()?,
-                UserOptions::ShowList => self.user_interface.show_todo_list(&mut self.todo_storage)?,
+                UserOptions::ShowList => {
+                    self.user_interface.show_todo_list(&mut self.todo_storage)?
+                }
             }
         }
         self.user_interface

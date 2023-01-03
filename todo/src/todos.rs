@@ -28,7 +28,7 @@ impl TodoStorage for Todos {
     fn is_empty(&mut self) -> bool {
         self.list.is_empty()
     }
-    
+
     fn get_list(&mut self) -> &mut Vec<Todo> {
         &mut self.list
     }
