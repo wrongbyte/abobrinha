@@ -14,6 +14,6 @@ fn main() {
         todo_storage,
     };
     if let Err(error) = todo_cli.run() {
-        println!("{}", error.format_error())
+        println!("{}", error)
     }
 }
