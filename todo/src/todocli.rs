@@ -17,7 +17,7 @@ impl TodoCli {
                 UserOptions::Quit => break,
                 UserOptions::NewTodo(todo) => {
                     self.todo_storage.push_new_todo(todo);
-                    self.user_interface.show_todo_list(&self.todo_storage.get_list())?
+                    self.user_interface.show_todo_list(self.todo_storage.get_list())?
                 }
                 UserOptions::Help => self.user_interface.show_help()?,
                 UserOptions::ClearList => {
@@ -30,12 +30,12 @@ impl TodoCli {
                 }
                 UserOptions::Unrecognized => self.user_interface.alert_unrecognized()?,
                 UserOptions::ShowList => {
-                    self.user_interface.show_todo_list(&self.todo_storage.get_list())?
+                    self.user_interface.show_todo_list(self.todo_storage.get_list())?
                 }
             }
         }
         self.user_interface
-            .write_stdout(&style("Ok, quitting now.").blue().to_string())?;
+            .write_interface(&style("Ok, quitting now.").blue().to_string())?;
         Ok(())
     }
 }
