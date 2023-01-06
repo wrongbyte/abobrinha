@@ -35,7 +35,7 @@ impl TodoCli {
             }
         }
         self.user_interface
-            .write_interface(&style("Ok, quitting now.").blue().to_string())?;
+            .write_interface(&"Ok, quitting now.")?;
         Ok(())
     }
 }
