@@ -17,11 +17,11 @@ impl TodoCli {
                 UserOptions::Quit => break,
                 UserOptions::NewTodo(todo) => {
                     self.todo_storage.push_new_todo(todo);
-                    self.user_interface.show_todo_list(&mut self.todo_storage)?
+                    self.user_interface.show_todo_list(&self.todo_storage.get_list())?
                 }
                 UserOptions::Help => self.user_interface.show_help()?,
                 UserOptions::ClearList => {
-                    self.todo_storage.get_list().clear();
+                    self.todo_storage.clear();
                     self.user_interface.clear_todo_message()?
                 }
                 UserOptions::RemoveTodo(index) => {
@@ -30,7 +30,7 @@ impl TodoCli {
                 }
                 UserOptions::Unrecognized => self.user_interface.alert_unrecognized()?,
                 UserOptions::ShowList => {
-                    self.user_interface.show_todo_list(&mut self.todo_storage)?
+                    self.user_interface.show_todo_list(&self.todo_storage.get_list())?
                 }
             }
         }

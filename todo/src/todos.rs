@@ -8,7 +8,8 @@ pub trait TodoStorage {
     fn push_new_todo(&mut self, todo: Todo);
     fn remove_todo(&mut self, index_todo: usize) -> Result<(), TerminalError>;
     fn is_empty(&mut self) -> bool;
-    fn get_list(&mut self) -> &mut Vec<Todo>;
+    fn get_list(&mut self) -> &[Todo];
+    fn clear(&mut self);
 }
 
 impl TodoStorage for Todos {
@@ -29,8 +30,12 @@ impl TodoStorage for Todos {
         self.list.is_empty()
     }
 
-    fn get_list(&mut self) -> &mut Vec<Todo> {
-        &mut self.list
+    fn get_list(&mut self) -> &[Todo] {
+        &self.list[..]
+    }
+
+    fn clear(&mut self) {
+        self.list.clear()
     }
 }
 

@@ -34,7 +34,7 @@ pub trait UserInterface {
     fn show_help(&mut self) -> Result<(), TerminalError>;
     fn show_todo_list(
         &mut self,
-        todo_list: &mut Box<(dyn TodoStorage + 'static)>,
+        todo_list: &[Todo],
     ) -> Result<(), TerminalError>;
 }
 
@@ -71,7 +71,7 @@ impl UserInterface for Terminal {
 
     fn show_todo_list(
         &mut self,
-        todo_list: &mut Box<(dyn TodoStorage + 'static)>,
+        todo_list: &[Todo],
     ) -> Result<(), TerminalError> {
         if todo_list.is_empty() {
             self.write_stdout(
@@ -81,7 +81,7 @@ impl UserInterface for Terminal {
             )?;
         } else {
             self.write_stdout(&style("Your current todo list is:").green().to_string())?;
-            for todo in todo_list.get_list() {
+            for todo in todo_list {
                 self.show_todo(todo)?;
             }
         }
