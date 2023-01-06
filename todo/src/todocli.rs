@@ -1,5 +1,3 @@
-use console::style;
-
 use crate::{
     terminal::{error::TerminalError, UserInterface, UserOptions},
     todos::TodoStorage,
