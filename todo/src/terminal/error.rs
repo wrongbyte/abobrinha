@@ -1,5 +1,5 @@
 use std::{
-    fmt::{self},
+    fmt,
     io::Error,
 };
 
