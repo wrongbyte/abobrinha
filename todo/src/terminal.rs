@@ -134,6 +134,7 @@ impl UserInterface for Terminal {
         self.write_interface(&style("⭐️ To remove a todo, type \"rm n\", being \"n\" the index of the todo in the list. ⭐️").yellow())?;
         self.write_interface(&style("⭐️ To clear the list of todos, type \"clear\" ⭐️").yellow())?;
         self.write_interface(&style("⭐️ To see the list of todos, type \"list\" ⭐️").yellow())?;
+        self.write_interface(&style("⭐️ To mark a todo as done, type \"done n\", being \"n\" the index of the todo in the list.  ⭐️").yellow())?;
         Ok(())
     }
 }
