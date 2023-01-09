@@ -20,6 +20,7 @@ pub enum UserOptions {
     Help,
     ShowList,
     Unrecognized,
+    DoTodo(usize)
 }
 
 pub trait UserInterface {
@@ -36,6 +37,7 @@ pub trait UserInterface {
         &mut self,
         todo_list: &[Todo],
     ) -> Result<(), TerminalError>;
+    fn mark_done_message(&mut self) -> Result<(), TerminalError>;
 }
 
 impl UserInterface for Terminal {
@@ -51,9 +53,12 @@ impl UserInterface for Terminal {
         }
     }
 
+    fn mark_done_message(&mut self) -> Result<(), TerminalError> {
+        self.write_interface(&style("Todo marked as done.").green().to_string())
+    }
+
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError> {
-        let formatted_msg = format!("[ ] - {}", todo.message);
-        self.write_interface(&style(formatted_msg).green().to_string())
+        self.write_interface(&style(todo).green())
     }
 
     fn alert_unrecognized(&mut self) -> Result<(), TerminalError> {
@@ -101,6 +106,13 @@ impl UserInterface for Terminal {
                 .parse()
                 .map_err(|_| TerminalError::ParseInt(index.to_string()))?;
             return Ok(UserOptions::RemoveTodo(parsed_i));
+        }
+
+        if let Some(index) = user_input.strip_prefix("done ") {
+            let parsed_i = index
+                .parse()
+                .map_err(|_| TerminalError::ParseInt(index.to_string()))?;
+            return Ok(UserOptions::DoTodo(parsed_i));
         }
 
         match user_input.as_str() {

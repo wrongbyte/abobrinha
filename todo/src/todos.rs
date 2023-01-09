@@ -10,6 +10,7 @@ pub trait TodoStorage {
     fn is_empty(&mut self) -> bool;
     fn get_list(&mut self) -> &[Todo];
     fn clear(&mut self);
+    fn mark_done(&mut self, index_todo: usize) -> Result<(), TerminalError>;
 }
 
 impl TodoStorage for Todos {
@@ -20,6 +21,15 @@ impl TodoStorage for Todos {
     fn remove_todo(&mut self, index_todo: usize) -> Result<(), TerminalError> {
         if index_todo < self.list.len() {
             self.list.remove(index_todo);
+            Ok(())
+        } else {
+            Err(TerminalError::IndexError)
+        }
+    }
+
+    fn mark_done(&mut self, index_todo: usize) -> Result<(), TerminalError> {
+        if index_todo < self.list.len() {
+            self.list[index_todo].done = true;
             Ok(())
         } else {
             Err(TerminalError::IndexError)
