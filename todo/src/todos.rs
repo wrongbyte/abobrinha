@@ -28,8 +28,8 @@ impl TodoStorage for Todos {
     }
 
     fn mark_done(&mut self, index_todo: usize) -> Result<(), TerminalError> {
-        if index_todo < self.list.len() {
-            self.list[index_todo].done = true;
+        if let Some(todo) = self.list.get_mut(index_todo) {
+            todo.done = true;
             Ok(())
         } else {
             Err(TerminalError::IndexError)
