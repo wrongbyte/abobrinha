@@ -4,7 +4,6 @@ use error::TerminalError;
 use std::{
     fmt::Display,
     io::{Stdin, Stdout, Write},
-    usize,
 };
 pub(crate) mod error;
 
