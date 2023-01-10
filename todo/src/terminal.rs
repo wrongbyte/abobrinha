@@ -36,9 +36,14 @@ pub trait UserInterface {
     fn show_help(&mut self) -> Result<(), TerminalError>;
     fn show_todo_list(&mut self, todo_list: &[Todo]) -> Result<(), TerminalError>;
     fn mark_done_message(&mut self) -> Result<(), TerminalError>;
+    fn print_error(&mut self, error: &TerminalError) -> ();
 }
 
 impl UserInterface for Terminal {
+    fn print_error(&mut self, error: &TerminalError) -> () {
+        self.write_interface(&style(error).red()).unwrap();
+    }
+
     fn prompt_new_todo(&mut self) -> Result<Todo, TerminalError> {
         self.write_interface(&style("Write your new todo:").blue())?;
         let user_input = self.input()?;

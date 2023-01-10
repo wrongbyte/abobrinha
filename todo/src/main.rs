@@ -15,7 +15,7 @@ fn main() {
     };
     loop {
         if let Err(error) = todo_cli.run() {
-            println!("{}", error);
+            todo_cli.user_interface.print_error(&error);
             if error.is_fatal() {
                 break;
             }
