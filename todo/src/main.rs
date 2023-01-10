@@ -13,7 +13,12 @@ fn main() {
         user_interface,
         todo_storage,
     };
-    if let Err(error) = todo_cli.run() {
-        println!("{}", error)
+    loop {
+        if let Err(mut error) = todo_cli.run() {
+            println!("{}", error);
+            if error.is_fatal() {
+                break;
+            }
+        }
     }
 }
