@@ -3,16 +3,22 @@ use std::fmt;
 #[derive(Debug, Clone)]
 pub struct Todo {
     pub message: String,
+    pub done: bool
 }
 
 impl Todo {
     pub fn new(message: String) -> Self {
-        Todo { message }
+        Todo { message, done: false }
     }
 }
 
 impl fmt::Display for Todo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ ] - {}", self.message)
+        if !self.done {
+            write!(f, "[ ] - {}", self.message)?
+        } else {
+            write!(f, "[x] - {}", self.message)?
+        }
+        Ok(())
     }
 }

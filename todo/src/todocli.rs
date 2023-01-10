@@ -29,6 +29,11 @@ impl TodoCli {
                 UserOptions::Unrecognized => self.user_interface.alert_unrecognized()?,
                 UserOptions::ShowList => {
                     self.user_interface.show_todo_list(self.todo_storage.get_list())?
+                },
+                UserOptions::DoTodo(index) => {
+                    self.todo_storage.mark_done(index)?;
+                    self.user_interface.mark_done_message()?;
+                    self.user_interface.show_todo_list(self.todo_storage.get_list())?
                 }
             }
         }

@@ -21,3 +21,14 @@ impl fmt::Display for TerminalError {
         }
     }
 }
+
+
+impl TerminalError {
+    pub fn is_fatal(self) -> bool {
+        match self {
+            TerminalError::Stdin(_) => true,
+            TerminalError::Stdout(_) => true,
+            _ => false
+        }
+    }
+}
