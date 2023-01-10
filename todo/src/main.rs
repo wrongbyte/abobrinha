@@ -14,7 +14,7 @@ fn main() {
         todo_storage,
     };
     loop {
-        if let Err(mut error) = todo_cli.run() {
+        if let Err(error) = todo_cli.run() {
             println!("{}", error);
             if error.is_fatal() {
                 break;
