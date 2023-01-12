@@ -6,7 +6,8 @@ mod todo;
 mod todocli;
 mod todos;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let user_interface = Box::new(Terminal::new());
     let todo_storage = Box::new(Todos::new());
     let mut todo_cli = TodoCli {
