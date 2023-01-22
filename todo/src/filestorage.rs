@@ -4,7 +4,7 @@ use crate::todos::Todos;
 use async_trait::async_trait;
 use error::StorageError;
 use std::io::SeekFrom;
-use tokio::fs::{OpenOptions, remove_file};
+use tokio::fs::{remove_file, OpenOptions};
 use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
 
 #[async_trait]
@@ -55,7 +55,9 @@ impl Storage for FileStorage {
     }
 
     async fn clear_todos() -> Result<(), StorageError> {
-        remove_file("todo.txt").await.map_err(|_| StorageError::WriteError)?;
+        remove_file("todo.txt")
+            .await
+            .map_err(|_| StorageError::DeleteError)?;
         FileStorage::open_file().await?;
         Ok(())
     }
@@ -63,43 +65,44 @@ impl Storage for FileStorage {
     async fn remove_todo(todo_index: usize) -> Result<(), StorageError> {
         let mut todo_list = FileStorage::get_todos_from_storage().await?;
 
-        FileStorage::clear_todos().await.map_err(|_| StorageError::WriteError)?;
-        
+        FileStorage::clear_todos()
+            .await
+            .map_err(|_| StorageError::WriteError)?;
+
         todo_list.list.remove(todo_index);
 
         for todo in todo_list.list.iter() {
             let formatted_todo = "[ ] - ".to_owned() + &todo.message.to_string();
             FileStorage::insert_todo(formatted_todo).await?;
         }
-
         Ok(())
     }
 
     async fn mark_done(todo_list: &mut Todos) -> Result<(), StorageError> {
-        FileStorage::clear_todos().await.map_err(|_| StorageError::WriteError)?;
-        
+        FileStorage::clear_todos()
+            .await
+            .map_err(|_| StorageError::WriteError)?;
+
         for todo in todo_list.list.iter() {
             let formatted_todo = match todo.done {
                 true => "[X] - ".to_owned() + &todo.message.to_string(),
-                false => "[ ] - ".to_owned() + &todo.message.to_string()
+                false => "[ ] - ".to_owned() + &todo.message.to_string(),
             };
             FileStorage::insert_todo(formatted_todo).await?;
         }
-
         Ok(())
     }
-
 }
 
 impl FileStorage {
     pub async fn open_file() -> Result<tokio::fs::File, StorageError> {
         OpenOptions::new()
-        .read(true)
-        .create(true)
-        .append(true)
-        .open("todo.txt")
-        .await
-        .map_err(|_| StorageError::OpenError)
+            .read(true)
+            .create(true)
+            .append(true)
+            .open("todo.txt")
+            .await
+            .map_err(|_| StorageError::OpenError)
     }
 }
 

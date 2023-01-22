@@ -7,6 +7,7 @@ pub enum StorageError {
     WriteError,
     EmptyTodoError,
     OpenError,
+    DeleteError
 }
 
 impl fmt::Display for StorageError {
@@ -17,16 +18,19 @@ impl fmt::Display for StorageError {
             }
             StorageError::InvalidBuffer(error) => {
                 write!(f, "Error when reading file: {}", error)
-            },
+            }
             StorageError::ReadError => {
                 write!(f, "Error when reading file")
-            },
+            }
             StorageError::WriteError => {
                 write!(f, "Error when writing in file")
-            },
+            }
             StorageError::OpenError => {
                 write!(f, "Error when opening the file")
-            }
+            },
+            StorageError::DeleteError => {
+                write!(f, "Error when emptying the file")
+            },
         }
     }
 }
