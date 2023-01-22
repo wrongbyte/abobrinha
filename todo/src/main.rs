@@ -5,6 +5,7 @@ mod terminal;
 mod todo;
 mod todocli;
 mod todos;
+mod filestorage;
 
 #[tokio::main]
 async fn main() {
@@ -15,7 +16,7 @@ async fn main() {
         todo_storage,
     };
     loop {
-        if let Err(error) = todo_cli.run() {
+        if let Err(error) = todo_cli.run().await {
             todo_cli.user_interface.print_error(&error);
             if error.is_fatal() {
                 break;

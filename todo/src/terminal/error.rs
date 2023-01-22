@@ -2,6 +2,7 @@ use std::{
     fmt,
     io::Error,
 };
+use crate::filestorage::error::StorageError;
 
 #[derive(Debug)]
 pub enum TerminalError {
@@ -9,6 +10,7 @@ pub enum TerminalError {
     Stdin(Error),
     ParseInt(String),
     IndexError,
+    StorageError(StorageError)
 }
 
 impl fmt::Display for TerminalError {
@@ -18,6 +20,7 @@ impl fmt::Display for TerminalError {
             TerminalError::Stdout(error) => write!(f, "Output error: {}", error),
             TerminalError::ParseInt(i) => write!(f, "Parse error: \"{}\" is an invalid index!", i),
             TerminalError::IndexError => write!(f, "Index error: Index out of bounds!"),
+            TerminalError::StorageError(error) => write!(f, "Error in storage: {}", error),
         }
     }
 }
@@ -28,6 +31,7 @@ impl TerminalError {
         match self {
             TerminalError::Stdin(_) => true,
             TerminalError::Stdout(_) => true,
+            TerminalError::StorageError(_) => true,
             _ => false
         }
     }

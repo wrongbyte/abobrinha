@@ -9,31 +9,32 @@ pub(crate) struct TodoCli {
 }
 
 impl TodoCli {
-    pub fn run(&mut self) -> Result<(), TerminalError> {
+    pub async fn run(&mut self) -> Result<(), TerminalError> {
         loop {
             match self.user_interface.user_intention()? {
                 UserOptions::Quit => break,
                 UserOptions::NewTodo(todo) => {
-                    self.todo_storage.push_new_todo(todo);
-                    self.user_interface.show_todo_list(self.todo_storage.get_list())?
+                    self.todo_storage.push_new_todo(todo).await?;
+                    let todo_list = self.todo_storage.get_list().await?;
+                    self.user_interface.show_todo_list(&todo_list)?
                 }
                 UserOptions::Help => self.user_interface.show_help()?,
                 UserOptions::ClearList => {
-                    self.todo_storage.clear();
+                    self.todo_storage.clear().await?;
                     self.user_interface.clear_todo_message()?
                 }
                 UserOptions::RemoveTodo(index) => {
-                    self.todo_storage.remove_todo(index)?;
+                    self.todo_storage.remove_todo(index).await?;
                     self.user_interface.remove_todo_message()?
                 }
                 UserOptions::Unrecognized => self.user_interface.alert_unrecognized()?,
                 UserOptions::ShowList => {
-                    self.user_interface.show_todo_list(self.todo_storage.get_list())?
+                    self.user_interface.show_todo_list(&self.todo_storage.get_list().await?)?
                 },
                 UserOptions::DoTodo(index) => {
-                    self.todo_storage.mark_done(index)?;
+                    self.todo_storage.mark_done(index).await?;
                     self.user_interface.mark_done_message()?;
-                    self.user_interface.show_todo_list(self.todo_storage.get_list())?
+                    self.user_interface.show_todo_list(&self.todo_storage.get_list().await?)?
                 }
             }
         }
