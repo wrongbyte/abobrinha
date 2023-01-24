@@ -3,17 +3,17 @@ use crate::todo::Todo;
 use crate::todos::Todos;
 use async_trait::async_trait;
 use error::StorageError;
-use std::io::SeekFrom;
-use tokio::fs::{read_to_string, remove_file, OpenOptions};
-use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
+use tokio::fs::{read_to_string, remove_file, write, OpenOptions};
+use tokio::io::{AsyncWriteExt};
 
 #[async_trait]
 pub trait Storage {
-    async fn get_todos_from_storage() -> Result<Todos, StorageError>;
+    async fn get_todos_from_filestorage() -> Result<Todos, StorageError>;
     async fn insert_todo(todo: String) -> Result<(), StorageError>;
     async fn remove_todo(todo_number: usize) -> Result<(), StorageError>;
     async fn clear_todos() -> Result<(), StorageError>;
     async fn mark_done(todo_list: &mut Todos) -> Result<(), StorageError>;
+    async fn write_filestorage(todo_list: &mut Todos) -> Result<(), StorageError>;
 }
 
 pub struct FileStorage {
@@ -22,7 +22,7 @@ pub struct FileStorage {
 
 #[async_trait]
 impl Storage for FileStorage {
-    async fn get_todos_from_storage() -> Result<Todos, StorageError> {
+    async fn get_todos_from_filestorage() -> Result<Todos, StorageError> {
         let mut todo_vec = Vec::new();
         let todo_str = read_to_string("todo.txt")
             .await
@@ -36,6 +36,19 @@ impl Storage for FileStorage {
             todo_vec.push(todo);
         }
         Ok(Todos { list: todo_vec })
+    }
+
+    async fn write_filestorage(todo_list: &mut Todos) -> Result<(), StorageError> {
+        let mut todo_list_str = String::new();
+        for todo in todo_list.list.iter() {
+            let item_list = match todo.done {
+                true => "[X] - ".to_owned() + &todo.message.to_string() + "\n",
+                false => "[ ] - ".to_owned() + &todo.message.to_string() + "\n",
+            };
+            todo_list_str.push_str(&item_list);
+        }
+        write("todo.txt", todo_list_str).await.map_err(|_| StorageError::WriteError)?;
+        Ok(())
     }
 
     async fn insert_todo(todo: String) -> Result<(), StorageError> {
@@ -57,7 +70,7 @@ impl Storage for FileStorage {
     }
 
     async fn remove_todo(todo_index: usize) -> Result<(), StorageError> {
-        let mut todo_list = FileStorage::get_todos_from_storage().await?;
+        let mut todo_list = FileStorage::get_todos_from_filestorage().await?;
 
         FileStorage::clear_todos()
             .await

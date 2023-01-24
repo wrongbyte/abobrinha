@@ -1,8 +1,7 @@
-use std::{fmt, string::FromUtf8Error};
+use std::{fmt};
 
 #[derive(Debug)]
 pub enum StorageError {
-    InvalidBuffer(FromUtf8Error),
     ReadError,
     WriteError,
     EmptyTodoError,
@@ -15,9 +14,6 @@ impl fmt::Display for StorageError {
         match self {
             StorageError::EmptyTodoError => {
                 write!(f, "Todo file storage is empty.")
-            }
-            StorageError::InvalidBuffer(error) => {
-                write!(f, "Error when reading file: {}", error)
             }
             StorageError::ReadError => {
                 write!(f, "Error when reading file")

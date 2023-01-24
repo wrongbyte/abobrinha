@@ -20,29 +20,33 @@ pub trait TodoStorage {
 #[async_trait]
 impl TodoStorage for Todos {
     async fn push_new_todo(&mut self, todo: Todo) -> Result<(), TerminalError> {
-        // self.list.push(todo);
-        FileStorage::insert_todo(todo.to_string()).await.map_err(|error| TerminalError::StorageError(error))?;
+        let mut todo_list = FileStorage::get_todos_from_filestorage().await.map_err(|error| TerminalError::StorageError(error))?;
+        todo_list.list.push(todo);
+        self.list = todo_list.list;
+        FileStorage::write_filestorage(&mut self).await.map_err(|error| TerminalError::StorageError(error))?;
         Ok(())
     }
 
     async fn remove_todo(&mut self, index_todo: usize) -> Result<(), TerminalError> {
-        let todo_list = FileStorage::get_todos_from_storage().await.map_err(|error| TerminalError::StorageError(error))?;
+        let mut todo_list = FileStorage::get_todos_from_filestorage().await.map_err(|error| TerminalError::StorageError(error))?;
         if index_todo > todo_list.list.len() {
             return Err(TerminalError::IndexError);
         }
-        FileStorage::remove_todo(index_todo).await.map_err(|error| TerminalError::StorageError(error))
+        todo_list.list.remove(index_todo);
+        self.list = todo_list.list;
+        FileStorage::write_filestorage(&mut self).await.map_err(|error| TerminalError::StorageError(error))?;
+        Ok(())
     }
 
     async fn mark_done(&mut self, index_todo: usize) -> Result<(), TerminalError> {
-        let mut todo_list = FileStorage::get_todos_from_storage().await.map_err(|error| TerminalError::StorageError(error))?;
+        let mut todo_list = FileStorage::get_todos_from_filestorage().await.map_err(|error| TerminalError::StorageError(error))?;
         if let Some(todo) = todo_list.list.get_mut(index_todo) {
             todo.done = true;
         } else {
             return Err(TerminalError::IndexError)
         }
-
-        FileStorage::mark_done(&mut todo_list).await.map_err(|error| TerminalError::StorageError(error))?;
-
+        self.list = todo_list.list;
+        FileStorage::write_filestorage(&mut self).await.map_err(|error| TerminalError::StorageError(error))?;
         Ok(())
     }
 
@@ -51,13 +55,13 @@ impl TodoStorage for Todos {
     }
 
     async fn get_list(&mut self) -> Result<Vec<Todo>, TerminalError> {
-        let todos = FileStorage::get_todos_from_storage().await.map_err(|error| TerminalError::StorageError(error))?;
+        let todos = FileStorage::get_todos_from_filestorage().await.map_err(|error| TerminalError::StorageError(error))?;
         Ok(todos.list)
     }
 
     async fn clear(&mut self) -> Result<(), TerminalError> {
         self.list.clear();
-        FileStorage::clear_todos().await.map_err(|error| TerminalError::StorageError(error))?;
+        FileStorage::write_filestorage(&mut self).await.map_err(|error| TerminalError::StorageError(error))?;
         Ok(())
     }
 }
