@@ -27,12 +27,7 @@ impl fmt::Display for TerminalError {
 
 
 impl TerminalError {
-    pub fn is_fatal(self) -> bool {
-        match self {
-            TerminalError::Stdin(_) => true,
-            TerminalError::Stdout(_) => true,
-            TerminalError::StorageError(_) => true,
-            _ => false
-        }
+    pub fn is_fatal(&self) -> bool {
+        matches!(self, TerminalError::Stdin(_) | TerminalError::Stdout(_) | TerminalError::StorageError(_))
     }
 }

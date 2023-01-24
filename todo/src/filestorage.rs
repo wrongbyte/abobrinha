@@ -21,9 +21,9 @@ impl Storage for FileStorage {
         let mut todo_vec = Vec::new();
         let todo_str = read_to_string(&self.path)
             .await
-            .map_err(|_| StorageError::ReadError)?;
+            .map_err(|_| StorageError::Read)?;
 
-        let mut vec_todo: Vec<&str> = todo_str.split("\n").collect();
+        let mut vec_todo: Vec<&str> = todo_str.split('\n').collect();
         vec_todo.truncate(vec_todo.len() - 1);
 
         for line in vec_todo.iter() {
@@ -44,7 +44,7 @@ impl Storage for FileStorage {
         }
         write(&self.path, todo_list_str)
             .await
-            .map_err(|_| StorageError::WriteError)?;
+            .map_err(|_| StorageError::Write)?;
         Ok(())
     }
 }
@@ -58,7 +58,7 @@ impl FileStorage {
                 done,
             })
         } else {
-            Err(StorageError::EmptyTodoError)
+            Err(StorageError::EmptyTodo)
         }
     }
 }
