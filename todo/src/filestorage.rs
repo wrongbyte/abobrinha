@@ -5,14 +5,14 @@ use async_trait::async_trait;
 use error::StorageError;
 use tokio::fs::{read_to_string, write};
 
+pub struct FileStorage {
+    pub path: String,
+}
+
 #[async_trait]
 pub trait Storage {
     async fn get_todos_from_filestorage() -> Result<Todos, StorageError>;
     async fn write_filestorage(todo_list: &mut Todos) -> Result<(), StorageError>;
-}
-
-pub struct FileStorage {
-    pub path: String,
 }
 
 #[async_trait]
