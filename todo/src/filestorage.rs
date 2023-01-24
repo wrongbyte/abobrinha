@@ -11,15 +11,15 @@ pub struct FileStorage {
 
 #[async_trait]
 pub trait Storage {
-    async fn get_todos_from_filestorage() -> Result<Todos, StorageError>;
-    async fn write_filestorage(todo_list: &mut Todos) -> Result<(), StorageError>;
+    async fn get_todos_from_filestorage(&mut self) -> Result<Todos, StorageError>;
+    async fn write_filestorage(&mut self, todo_list: &mut Todos) -> Result<(), StorageError>;
 }
 
 #[async_trait]
 impl Storage for FileStorage {
-    async fn get_todos_from_filestorage() -> Result<Todos, StorageError> {
+    async fn get_todos_from_filestorage(&mut self) -> Result<Todos, StorageError> {
         let mut todo_vec = Vec::new();
-        let todo_str = read_to_string("todo.txt")
+        let todo_str = read_to_string(&self.path)
             .await
             .map_err(|_| StorageError::ReadError)?;
 
@@ -33,7 +33,7 @@ impl Storage for FileStorage {
         Ok(Todos { list: todo_vec })
     }
 
-    async fn write_filestorage(todo_list: &mut Todos) -> Result<(), StorageError> {
+    async fn write_filestorage(&mut self, todo_list: &mut Todos) -> Result<(), StorageError> {
         let mut todo_list_str = String::new();
         for todo in todo_list.list.iter() {
             let item_list = match todo.done {
@@ -42,7 +42,7 @@ impl Storage for FileStorage {
             };
             todo_list_str.push_str(&item_list);
         }
-        write("todo.txt", todo_list_str)
+        write(&self.path, todo_list_str)
             .await
             .map_err(|_| StorageError::WriteError)?;
         Ok(())

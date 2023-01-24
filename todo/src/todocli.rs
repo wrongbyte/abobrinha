@@ -1,6 +1,6 @@
 use crate::{
     terminal::{error::TerminalError, UserInterface, UserOptions},
-    todos::TodoStorage,
+    todos::TodoStorage, filestorage::FileStorage,
 };
 
 pub(crate) struct TodoCli {
@@ -10,31 +10,32 @@ pub(crate) struct TodoCli {
 
 impl TodoCli {
     pub async fn run(&mut self) -> Result<(), TerminalError> {
+        let mut file = FileStorage { path: "todo.txt".to_string() };
         loop {
             match self.user_interface.user_intention()? {
                 UserOptions::Quit => break,
                 UserOptions::NewTodo(todo) => {
-                    self.todo_storage.push_new_todo(todo).await?;
-                    let todo_list = self.todo_storage.get_list().await?;
+                    self.todo_storage.push_new_todo(todo, &mut file).await?;
+                    let todo_list = self.todo_storage.get_list(&mut file).await?;
                     self.user_interface.show_todo_list(&todo_list)?
                 }
                 UserOptions::Help => self.user_interface.show_help()?,
                 UserOptions::ClearList => {
-                    self.todo_storage.clear().await?;
+                    self.todo_storage.clear(&mut file).await?;
                     self.user_interface.clear_todo_message()?
                 }
                 UserOptions::RemoveTodo(index) => {
-                    self.todo_storage.remove_todo(index).await?;
+                    self.todo_storage.remove_todo(index, &mut file).await?;
                     self.user_interface.remove_todo_message()?
                 }
                 UserOptions::Unrecognized => self.user_interface.alert_unrecognized()?,
                 UserOptions::ShowList => {
-                    self.user_interface.show_todo_list(&self.todo_storage.get_list().await?)?
+                    self.user_interface.show_todo_list(&self.todo_storage.get_list(&mut file).await?)?
                 },
                 UserOptions::DoTodo(index) => {
-                    self.todo_storage.mark_done(index).await?;
+                    self.todo_storage.mark_done(index, &mut file).await?;
                     self.user_interface.mark_done_message()?;
-                    self.user_interface.show_todo_list(&self.todo_storage.get_list().await?)?
+                    self.user_interface.show_todo_list(&self.todo_storage.get_list(&mut file).await?)?
                 }
             }
         }
