@@ -4,7 +4,7 @@ use crate::todos::Todos;
 use async_trait::async_trait;
 use error::StorageError;
 use std::io::SeekFrom;
-use tokio::fs::{remove_file, OpenOptions};
+use tokio::fs::{read_to_string, remove_file, OpenOptions};
 use tokio::io::{AsyncReadExt, AsyncSeekExt, AsyncWriteExt};
 
 #[async_trait]
@@ -17,26 +17,20 @@ pub trait Storage {
 }
 
 pub struct FileStorage {
-    // pub file: tokio::fs::File,
-    // pub todo_vec: Todos,
+    pub path: String,
 }
 
 #[async_trait]
 impl Storage for FileStorage {
     async fn get_todos_from_storage() -> Result<Todos, StorageError> {
-        let mut buffer = Vec::new();
         let mut todo_vec = Vec::new();
-        let mut file = FileStorage::open_file().await?;
-        file.seek(SeekFrom::Start(0))
-            .await
-            .map_err(|_| StorageError::WriteError)?;
-
-        file.read_to_end(&mut buffer)
+        let todo_str = read_to_string("todo.txt")
             .await
             .map_err(|_| StorageError::ReadError)?;
-        let s = String::from_utf8(buffer).map_err(|e| StorageError::InvalidBuffer(e))?;
-        let mut vec_todo: Vec<&str> = s.split("\n").collect();
+
+        let mut vec_todo: Vec<&str> = todo_str.split("\n").collect();
         vec_todo.truncate(vec_todo.len() - 1);
+
         for line in vec_todo.iter() {
             let todo = build_todo(line.to_string())?;
             todo_vec.push(todo);

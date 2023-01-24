@@ -20,6 +20,7 @@ pub trait TodoStorage {
 #[async_trait]
 impl TodoStorage for Todos {
     async fn push_new_todo(&mut self, todo: Todo) -> Result<(), TerminalError> {
+        // self.list.push(todo);
         FileStorage::insert_todo(todo.to_string()).await.map_err(|error| TerminalError::StorageError(error))?;
         Ok(())
     }
