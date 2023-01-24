@@ -4,9 +4,7 @@ use std::{fmt};
 pub enum StorageError {
     ReadError,
     WriteError,
-    EmptyTodoError,
-    OpenError,
-    DeleteError
+    EmptyTodoError
 }
 
 impl fmt::Display for StorageError {
@@ -21,12 +19,6 @@ impl fmt::Display for StorageError {
             StorageError::WriteError => {
                 write!(f, "Error when writing in file")
             }
-            StorageError::OpenError => {
-                write!(f, "Error when opening the file")
-            },
-            StorageError::DeleteError => {
-                write!(f, "Error when emptying the file")
-            },
         }
     }
 }
