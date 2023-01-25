@@ -20,25 +20,22 @@ pub trait Storage {
 #[async_trait]
 impl Storage for FileStorage {
     async fn get_todos_from_filestorage(&self) -> Result<Todos, StorageError> {
-        let mut todo_vec = Vec::new();
         let todo_str = read_to_string(&self.path)
             .await
             .map_err(|_| StorageError::Read)?;
 
-        let mut vec_todo: Vec<&str> = todo_str.split('\n').collect();
-        vec_todo.truncate(vec_todo.len() - 1);
+        let vec_todo = todo_str
+            .lines()
+            .map(|line| FileStorage::build_todo(line.to_string()))
+            .collect::<Result<Vec<Todo>, _>>()? ;
 
-        for line in vec_todo.iter() {
-            let todo = FileStorage::build_todo(line.to_string())?;
-            todo_vec.push(todo);
-        }
-        Ok(Todos { list: todo_vec })
+        Ok(Todos { list: vec_todo })
     }
 
     async fn write_filestorage(&self, todo_list: &mut Todos) -> Result<(), StorageError> {
         let mut todo_list_str = String::new();
-        
-        for todo in todo_list.list.iter() {
+
+        for todo in &todo_list.list {
             let item_list = match todo.done {
                 true => format!("[X] - {}\n", &todo.message.to_string()),
                 false => format!("[ ] - {}\n", &todo.message.to_string()),
