@@ -37,10 +37,11 @@ impl Storage for FileStorage {
 
     async fn write_filestorage(&mut self, todo_list: &mut Todos) -> Result<(), StorageError> {
         let mut todo_list_str = String::new();
+        
         for todo in todo_list.list.iter() {
             let item_list = match todo.done {
-                true => "[X] - ".to_owned() + &todo.message.to_string() + "\n",
-                false => "[ ] - ".to_owned() + &todo.message.to_string() + "\n",
+                true => format!("[X] - {}\n", &todo.message.to_string()),
+                false => format!("[ ] - {}\n", &todo.message.to_string()),
             };
             todo_list_str.push_str(&item_list);
         }
