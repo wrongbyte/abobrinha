@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{
     terminal::{error::TerminalError, UserInterface, UserOptions},
     todos::TodoStorage, filestorage::FileStorage,
@@ -10,7 +12,7 @@ pub(crate) struct TodoCli {
 
 impl TodoCli {
     pub async fn run(&mut self) -> Result<(), TerminalError> {
-        let mut file = FileStorage { path: "todo.txt".to_string() };
+        let mut file = FileStorage { path: PathBuf::from("todo.txt") };
         loop {
             match self.user_interface.user_intention()? {
                 UserOptions::Quit => break,
