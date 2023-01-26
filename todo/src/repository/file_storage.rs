@@ -28,7 +28,7 @@ impl Storage for FileStorage {
             .map(|line| FileStorage::build_todo(line.to_string()))
             .collect::<Result<Vec<Todo>, _>>()? ;
 
-        Ok(Todos { list: vec_todo })
+        Ok(Todos::new(vec_todo))
     }
 
     async fn write_filestorage(&self, todo_list: &Todos) -> Result<(), StorageError> {

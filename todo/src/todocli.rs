@@ -1,3 +1,4 @@
+use crate::domain::todos::Todos;
 use crate::terminal::{error::TerminalError, UserInterface, UserOptions};
 use crate::repository::file_storage::{Storage};
 use crate::domain::todo::Todo;
@@ -40,8 +41,7 @@ impl TodoCli {
     }
 
     async fn clear_todo_list(&mut self) -> Result<(), TerminalError> {
-        let mut todo_list = self.todo_storage.get_todos_from_filestorage().await.map_err(TerminalError::StorageError)?;
-        todo_list.list.clear();
+        let todo_list = Todos::new(Vec::<Todo>::new());
         self.todo_storage.write_filestorage(&todo_list).await.map_err(TerminalError::StorageError)?;
         self.user_interface.clear_todo_message()?;
         Ok(())
