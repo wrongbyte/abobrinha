@@ -13,7 +13,7 @@ pub struct FileStorage {
 #[async_trait]
 pub trait Storage {
     async fn get_todos_from_filestorage(&self) -> Result<Todos, StorageError>;
-    async fn write_filestorage(&self, todo_list: &mut Todos) -> Result<(), StorageError>;
+    async fn write_filestorage(&self, todo_list: &Todos) -> Result<(), StorageError>;
 }
 
 #[async_trait]
@@ -31,7 +31,7 @@ impl Storage for FileStorage {
         Ok(Todos { list: vec_todo })
     }
 
-    async fn write_filestorage(&self, todo_list: &mut Todos) -> Result<(), StorageError> {
+    async fn write_filestorage(&self, todo_list: &Todos) -> Result<(), StorageError> {
         let mut todo_list_str = String::new();
 
         for todo in &todo_list.list {
