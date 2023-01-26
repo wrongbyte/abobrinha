@@ -1,4 +1,5 @@
-use crate::{terminal::error::TerminalError, todo::Todo};
+use crate::{terminal::error::TerminalError};
+use crate::domain::todo::Todo;
 use crate::filestorage::{Storage};
 use crate::filestorage::FileStorage;
 use async_trait::async_trait;

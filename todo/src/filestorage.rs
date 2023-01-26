@@ -1,7 +1,6 @@
 pub(crate) mod error;
 use std::path::PathBuf;
-
-use crate::todo::Todo;
+use crate::domain::todo::Todo;
 use crate::todos::Todos;
 use async_trait::async_trait;
 use error::StorageError;

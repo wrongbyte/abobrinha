@@ -2,10 +2,12 @@ use crate::terminal::Terminal;
 use todocli::TodoCli;
 use todos::Todos;
 mod terminal;
-mod todo;
 mod todocli;
 mod todos;
 mod filestorage;
+mod domain {
+    pub mod todo;
+}
 
 #[tokio::main]
 async fn main() {

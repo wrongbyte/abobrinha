@@ -1,4 +1,4 @@
-use crate::todo::Todo;
+use crate::domain::todo::Todo;
 use console::style;
 use error::TerminalError;
 use std::{
