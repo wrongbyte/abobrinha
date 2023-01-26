@@ -1,7 +1,7 @@
 pub(crate) mod error;
 use std::path::PathBuf;
 use crate::domain::todo::Todo;
-use crate::todos::Todos;
+use crate::domain::todos::Todos;
 use async_trait::async_trait;
 use error::StorageError;
 use tokio::fs::{read_to_string, write};

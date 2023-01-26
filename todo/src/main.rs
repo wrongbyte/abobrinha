@@ -1,12 +1,12 @@
 use crate::terminal::Terminal;
 use todocli::TodoCli;
-use todos::Todos;
+use crate::domain::todos::Todos;
 mod terminal;
 mod todocli;
-mod todos;
 mod filestorage;
 mod domain {
     pub mod todo;
+    pub mod todos;
 }
 
 #[tokio::main]

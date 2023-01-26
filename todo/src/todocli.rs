@@ -1,9 +1,9 @@
-use std::path::PathBuf;
-
+use crate::domain::todos::TodoStorage;
 use crate::{
+    filestorage::FileStorage,
     terminal::{error::TerminalError, UserInterface, UserOptions},
-    todos::TodoStorage, filestorage::FileStorage,
 };
+use std::path::PathBuf;
 
 pub(crate) struct TodoCli {
     pub user_interface: Box<dyn UserInterface>,
@@ -12,7 +12,9 @@ pub(crate) struct TodoCli {
 
 impl TodoCli {
     pub async fn run(&mut self) -> Result<(), TerminalError> {
-        let mut file = FileStorage { path: PathBuf::from("todo.txt") };
+        let mut file = FileStorage {
+            path: PathBuf::from("todo.txt"),
+        };
         loop {
             match self.user_interface.user_intention()? {
                 UserOptions::Quit => break,
@@ -31,18 +33,18 @@ impl TodoCli {
                     self.user_interface.remove_todo_message()?
                 }
                 UserOptions::Unrecognized => self.user_interface.alert_unrecognized()?,
-                UserOptions::ShowList => {
-                    self.user_interface.show_todo_list(&self.todo_storage.get_list(&mut file).await?)?
-                },
+                UserOptions::ShowList => self
+                    .user_interface
+                    .show_todo_list(&self.todo_storage.get_list(&mut file).await?)?,
                 UserOptions::DoTodo(index) => {
                     self.todo_storage.mark_done(index, &mut file).await?;
                     self.user_interface.mark_done_message()?;
-                    self.user_interface.show_todo_list(&self.todo_storage.get_list(&mut file).await?)?
+                    self.user_interface
+                        .show_todo_list(&self.todo_storage.get_list(&mut file).await?)?
                 }
             }
         }
-        self.user_interface
-            .write_interface(&"Ok, quitting now.")?;
+        self.user_interface.write_interface(&"Ok, quitting now.")?;
         Ok(())
     }
 }
