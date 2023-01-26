@@ -1,10 +1,10 @@
+use async_trait::async_trait;
+use tokio::fs::{read_to_string, write};
 pub(crate) mod error;
 use std::path::PathBuf;
 use crate::domain::todo::Todo;
 use crate::domain::todos::Todos;
-use async_trait::async_trait;
-use error::StorageError;
-use tokio::fs::{read_to_string, write};
+use crate::repository::file_storage::error::StorageError;
 
 pub struct FileStorage {
     pub path: PathBuf,

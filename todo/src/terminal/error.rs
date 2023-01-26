@@ -1,8 +1,5 @@
-use std::{
-    fmt,
-    io::Error,
-};
-use crate::filestorage::error::StorageError;
+use crate::repository::file_storage::error::StorageError;
+use std::{fmt, io::Error};
 
 #[derive(Debug)]
 pub enum TerminalError {
@@ -10,7 +7,7 @@ pub enum TerminalError {
     Stdin(Error),
     ParseInt(String),
     IndexError,
-    StorageError(StorageError)
+    StorageError(StorageError),
 }
 
 impl fmt::Display for TerminalError {
@@ -25,9 +22,11 @@ impl fmt::Display for TerminalError {
     }
 }
 
-
 impl TerminalError {
     pub fn is_fatal(&self) -> bool {
-        matches!(self, TerminalError::Stdin(_) | TerminalError::Stdout(_) | TerminalError::StorageError(_))
+        matches!(
+            self,
+            TerminalError::Stdin(_) | TerminalError::Stdout(_) | TerminalError::StorageError(_)
+        )
     }
 }

@@ -1,8 +1,6 @@
 use crate::domain::todos::TodoStorage;
-use crate::{
-    filestorage::FileStorage,
-    terminal::{error::TerminalError, UserInterface, UserOptions},
-};
+use crate::terminal::{error::TerminalError, UserInterface, UserOptions};
+use crate::repository::file_storage::FileStorage;
 use std::path::PathBuf;
 
 pub(crate) struct TodoCli {

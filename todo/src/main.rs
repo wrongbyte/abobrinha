@@ -3,7 +3,9 @@ use todocli::TodoCli;
 use crate::domain::todos::Todos;
 mod terminal;
 mod todocli;
-mod filestorage;
+mod repository {
+    pub mod file_storage;
+}
 mod domain {
     pub mod todo;
     pub mod todos;

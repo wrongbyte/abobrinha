@@ -1,7 +1,7 @@
 use crate::{terminal::error::TerminalError};
 use crate::domain::todo::Todo;
-use crate::filestorage::{Storage};
-use crate::filestorage::FileStorage;
+use crate::repository::file_storage::{Storage};
+use crate::repository::file_storage::FileStorage;
 use async_trait::async_trait;
 
 pub struct Todos {
