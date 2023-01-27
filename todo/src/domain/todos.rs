@@ -5,7 +5,7 @@ pub struct Todos {
 }
 
 impl Todos {
-    pub fn new (list: Vec<Todo>) -> Self {
+    pub fn new(list: Vec<Todo>) -> Self {
         Todos { list }
     }
 }

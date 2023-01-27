@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 use tokio::fs::{read_to_string, write};
 pub(crate) mod error;
-use std::path::PathBuf;
 use crate::domain::todo::Todo;
 use crate::domain::todos::Todos;
 use crate::repository::file_storage::error::StorageError;
+use std::path::PathBuf;
 
 pub struct FileStorage {
     pub path: PathBuf,
@@ -25,8 +25,8 @@ impl Storage for FileStorage {
 
         let vec_todo = todo_str
             .lines()
-            .map(|line| FileStorage::build_todo(line.to_string()))
-            .collect::<Result<Vec<Todo>, _>>()? ;
+            .map(|line| FileStorage::build_todo(line))
+            .collect::<Result<Vec<Todo>, _>>()?;
 
         Ok(Todos::new(vec_todo))
     }
@@ -49,7 +49,7 @@ impl Storage for FileStorage {
 }
 
 impl FileStorage {
-    pub fn build_todo(line: String) -> Result<Todo, StorageError> {
+    pub fn build_todo(line: &str) -> Result<Todo, StorageError> {
         let done = line.starts_with("[X] - ");
         if let Some(message) = line.split("] - ").nth(1) {
             Ok(Todo {

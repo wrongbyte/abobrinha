@@ -1,10 +1,10 @@
-use std::{fmt};
+use std::fmt;
 
 #[derive(Debug)]
 pub enum StorageError {
     Read,
     Write,
-    EmptyTodo
+    EmptyTodo,
 }
 
 impl fmt::Display for StorageError {
