@@ -5,13 +5,8 @@ use repository::file_storage::FileStorage;
 use todocli::TodoCli;
 mod terminal;
 mod todocli;
-mod repository {
-    pub mod file_storage;
-}
-mod domain {
-    pub mod todo;
-    pub mod todos;
-}
+mod repository;
+mod domain;
 
 #[tokio::main]
 async fn main() {
