@@ -20,7 +20,7 @@ impl fmt::Display for Todo {
         if !self.done {
             write!(f, "[ ] - {}", self.message)?
         } else {
-            write!(f, "[x] - {}", self.message)?
+            write!(f, "[X] - {}", self.message)?
         }
         Ok(())
     }

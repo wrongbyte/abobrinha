@@ -32,7 +32,7 @@ impl TodoCli {
             .get_todos_from_filestorage()
             .await
             .map_err(TerminalError::StorageError)?;
-        self.user_interface.show_todo_list(&todo_list.list)?;
+        self.user_interface.show_todo_list(todo_list)?;
         Ok(())
     }
 
@@ -42,12 +42,12 @@ impl TodoCli {
             .get_todos_from_filestorage()
             .await
             .map_err(TerminalError::StorageError)?;
-        todo_list.list.push(todo);
+        todo_list.push(todo);
         self.todo_storage
             .write_filestorage(&todo_list)
             .await
             .map_err(TerminalError::StorageError)?;
-        self.user_interface.show_todo_list(&todo_list.list)?;
+        self.user_interface.show_todo_list(todo_list)?;
         Ok(())
     }
 
@@ -67,10 +67,10 @@ impl TodoCli {
             .get_todos_from_filestorage()
             .await
             .map_err(TerminalError::StorageError)?;
-        if index_todo > todo_list.list.len() {
+        if index_todo > todo_list.len() {
             return Err(TerminalError::IndexError);
         }
-        todo_list.list.remove(index_todo);
+        todo_list.remove(index_todo);
         self.todo_storage
             .write_filestorage(&todo_list)
             .await
@@ -85,7 +85,7 @@ impl TodoCli {
             .get_todos_from_filestorage()
             .await
             .map_err(TerminalError::StorageError)?;
-        if let Some(todo) = todo_list.list.get_mut(index_todo) {
+        if let Some(todo) = todo_list.get_mut(index_todo) {
             todo.done = true;
         } else {
             return Err(TerminalError::IndexError);

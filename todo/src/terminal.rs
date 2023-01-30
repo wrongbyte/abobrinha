@@ -1,4 +1,4 @@
-use crate::domain::todo::Todo;
+use crate::domain::{todo::Todo, todos::Todos};
 use console::style;
 use error::TerminalError;
 use std::{
@@ -33,7 +33,7 @@ pub trait UserInterface {
     fn input(&mut self) -> Result<String, TerminalError>;
     fn write_interface(&mut self, string: &dyn Display) -> Result<(), TerminalError>;
     fn show_help(&mut self) -> Result<(), TerminalError>;
-    fn show_todo_list(&mut self, todo_list: &[Todo]) -> Result<(), TerminalError>;
+    fn show_todo_list(&mut self, todo_list: Todos) -> Result<(), TerminalError>;
     fn mark_done_message(&mut self) -> Result<(), TerminalError>;
     fn print_error(&mut self, error: &TerminalError);
 }
@@ -72,13 +72,13 @@ impl UserInterface for Terminal {
         Ok(())
     }
 
-    fn show_todo_list(&mut self, todo_list: &[Todo]) -> Result<(), TerminalError> {
+    fn show_todo_list(&mut self, todo_list: Todos) -> Result<(), TerminalError> {
         if todo_list.is_empty() {
             self.write_interface(&style("Your current todo list is empty!").green())?;
         } else {
             self.write_interface(&style("Your current todo list is:").green())?;
-            for todo in todo_list {
-                self.show_todo(todo)?;
+            for todo in todo_list.iter() {
+                self.show_todo(&todo)?;
             }
         }
         Ok(())
