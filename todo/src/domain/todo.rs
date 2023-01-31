@@ -3,12 +3,15 @@ use std::fmt;
 #[derive(Debug, Clone)]
 pub struct Todo {
     pub message: String,
-    pub done: bool
+    pub done: bool,
 }
 
 impl Todo {
     pub fn new(message: String) -> Self {
-        Todo { message, done: false }
+        Todo {
+            message,
+            done: false,
+        }
     }
 }
 
@@ -17,7 +20,7 @@ impl fmt::Display for Todo {
         if !self.done {
             write!(f, "[ ] - {}", self.message)?
         } else {
-            write!(f, "[x] - {}", self.message)?
+            write!(f, "[X] - {}", self.message)?
         }
         Ok(())
     }
