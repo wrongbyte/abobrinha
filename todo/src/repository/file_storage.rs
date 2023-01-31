@@ -36,8 +36,8 @@ impl Storage for FileStorage {
 
         for todo in todo_list.iter() {
             let item_list = match todo.done {
-                true => format!("[X] - {}\n", &todo.message.to_string()),
-                false => format!("[ ] - {}\n", &todo.message.to_string()),
+                true => format!("[X] - {}\n", &todo.message),
+                false => format!("[ ] - {}\n", &todo.message),
             };
             todo_list_str.push_str(&item_list);
         }
@@ -49,7 +49,7 @@ impl Storage for FileStorage {
 }
 
 impl FileStorage {
-    pub fn build_todo(line: &str) -> Result<Todo, StorageError> {
+    fn build_todo(line: &str) -> Result<Todo, StorageError> {
         let done = line.starts_with("[X] - ");
         if let Some(message) = line.split("] - ").nth(1) {
             Ok(Todo {
