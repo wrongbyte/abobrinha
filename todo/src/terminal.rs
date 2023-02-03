@@ -77,8 +77,8 @@ impl UserInterface for Terminal {
             self.write_interface(&style("Your current todo list is empty!").green())?;
         } else {
             self.write_interface(&style("Your current todo list is:").green())?;
-            for todo in todo_list.iter() {
-                self.show_todo(&todo)?;
+            for todo in &todo_list {
+                self.show_todo(todo)?;
             }
         }
         Ok(())

@@ -25,7 +25,7 @@ impl Storage for FileStorage {
 
         let vec_todo = todo_str
             .lines()
-            .map(|line| FileStorage::build_todo(line))
+            .map(FileStorage::build_todo)
             .collect::<Result<Vec<Todo>, _>>()?;
 
         Ok(Todos::new(vec_todo))
@@ -34,7 +34,7 @@ impl Storage for FileStorage {
     async fn write_filestorage(&self, todo_list: &Todos) -> Result<(), StorageError> {
         let mut todo_list_str = String::new();
 
-        for todo in todo_list.iter() {
+        for todo in todo_list {
             let item_list = match todo.done {
                 true => format!("[X] - {}\n", &todo.message),
                 false => format!("[ ] - {}\n", &todo.message),

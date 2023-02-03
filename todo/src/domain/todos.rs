@@ -1,16 +1,16 @@
-use std::iter::Iterator;
 use crate::domain::todo::Todo;
+use std::iter::Iterator;
 
 pub struct Todos {
-    list: Vec<Todo>
+    list: Vec<Todo>,
 }
 
-pub struct TodosIterator<'a> {
+pub struct Iter<'a> {
     todos: &'a Todos,
     index: usize,
 }
 
-impl<'a> Iterator for TodosIterator<'a> {
+impl<'a> Iterator for Iter<'a> {
     type Item = &'a Todo;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -24,13 +24,28 @@ impl<'a> Iterator for TodosIterator<'a> {
     }
 }
 
+impl<'a> IntoIterator for &'a Todos {
+    type Item = &'a Todo;
+    type IntoIter = Iter<'a>;
+
+    fn into_iter(self) -> Iter<'a> {
+        Iter {
+            todos: self,
+            index: 0,
+        }
+    }
+}
+
 impl Todos {
     pub fn new(list: Vec<Todo>) -> Self {
         Todos { list }
     }
 
-    pub fn iter(&self) -> TodosIterator {
-        TodosIterator { todos: self, index: 0 }
+    pub fn iter(&self) -> Iter {
+        Iter {
+            todos: self,
+            index: 0,
+        }
     }
 
     pub fn push(&mut self, todo: Todo) {
@@ -52,5 +67,4 @@ impl Todos {
     pub fn is_empty(&self) -> bool {
         self.list.is_empty()
     }
-
 }
