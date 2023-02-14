@@ -63,20 +63,3 @@ impl FileStorage {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[tokio::test]
-    async fn should_read_from_storage() {
-        let mut mock = MockStorage::new();
-        let todo_list = Todos::new([].to_vec());
-        mock.expect_get_todos_from_filestorage().return_once(|| Ok(todo_list));
-    }
-
-    #[tokio::test]
-    async fn should_write_to_storage() {
-        let mut mock = MockStorage::new();
-        mock.expect_write_filestorage().return_once(|_| Ok(()));
-    }
-}
