@@ -1,8 +1,9 @@
 use crate::domain::todo::Todo;
 use std::iter::Iterator;
 
+#[derive(PartialEq)]
 pub struct Todos {
-    list: Vec<Todo>,
+    pub list: Vec<Todo>,
 }
 
 pub struct Iter<'a> {

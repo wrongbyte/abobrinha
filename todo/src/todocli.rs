@@ -99,3 +99,67 @@ impl TodoCli {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod mocks {
+    use super::*;
+
+    factori::factori!(Todos, {
+        default {
+            list = [
+                Todo::new("first".to_string()),
+                Todo::new("second".to_string()),
+                Todo::new("third".to_string())
+            ].to_vec()
+        }
+        mixin updated {
+            list = [
+                Todo::new("first".to_string()),
+                Todo::new("second".to_string()),
+                Todo::new("third".to_string()),
+                Todo::new("fourth".to_string())
+            ].to_vec()
+        }
+        mixin empty {
+            list = [].to_vec()
+        }
+    });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{mocks::*, *};
+    use crate::{repository::file_storage::MockStorage, terminal::MockUserInterface};
+
+    #[tokio::test]
+    async fn should_add_todo() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+        let todo_added = Todo::new("fourth".to_string());
+        let original_todo_list = create!(Todos);
+        let updated_todo_list = create!(Todos, :updated);
+
+        mock_storage
+            .expect_get_todos_from_filestorage()
+            .return_once(|| Ok(original_todo_list));
+
+        mock_storage
+            .expect_write_filestorage()
+            .return_once(|_| Ok(()));
+
+        mock_user_interface
+            .expect_show_todo_list()
+            .withf(move |returned_list| *returned_list == updated_todo_list)
+            .return_once(|_| Ok(()));
+
+        let mut todo_cli_mock = TodoCli {
+            user_interface: Box::new(mock_user_interface),
+            todo_storage: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .add_todo(todo_added)
+            .await
+            .expect("Should add a Todo successfully");
+    }
+}

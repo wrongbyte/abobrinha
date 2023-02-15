@@ -1,6 +1,7 @@
 use std::fmt;
 
 #[derive(Debug, Clone)]
+#[derive(PartialEq)]
 pub struct Todo {
     pub message: String,
     pub done: bool,

@@ -7,6 +7,7 @@ mod terminal;
 mod todocli;
 mod repository;
 mod domain;
+#[macro_use]
 extern crate factori;
 
 #[tokio::main]
