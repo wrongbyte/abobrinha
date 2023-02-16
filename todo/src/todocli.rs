@@ -112,7 +112,7 @@ mod mocks {
                 Todo::new("third".to_string())
             ].to_vec()
         }
-        mixin updated {
+        mixin four_todos {
             list = [
                 Todo::new("first".to_string()),
                 Todo::new("second".to_string()),
@@ -137,7 +137,7 @@ mod tests {
         let mut mock_user_interface = MockUserInterface::new();
         let todo_added = Todo::new("fourth".to_string());
         let original_todo_list = create!(Todos);
-        let updated_todo_list = create!(Todos, :updated);
+        let updated_todo_list = create!(Todos, :four_todos);
 
         mock_storage
             .expect_get_todos_from_filestorage()
@@ -161,5 +161,93 @@ mod tests {
             .add_todo(todo_added)
             .await
             .expect("Should add a Todo successfully");
+    }
+
+    #[tokio::test]
+    async fn should_show_todo_list() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+        let todo_list = create!(Todos);
+        let todo_list_binding = create!(Todos);
+
+        mock_user_interface
+            .expect_show_todo_list()
+            .withf(move |returned_list| *returned_list == todo_list_binding)
+            .return_once(|_| Ok(()));
+
+        mock_storage
+            .expect_get_todos_from_filestorage()
+            .return_once(|| Ok(todo_list));
+
+        let mut todo_cli_mock = TodoCli {
+            user_interface: Box::new(mock_user_interface),
+            todo_storage: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .show_list()
+            .await
+            .expect("Should list all todos")
+    }
+
+    #[tokio::test]
+    async fn should_clear_list() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+        let empty_todo_list = create!(Todos, :empty);
+
+        mock_storage
+            .expect_write_filestorage()
+            .withf(move |list| list == &empty_todo_list)
+            .return_once(|_| Ok(()));
+
+        mock_user_interface
+            .expect_clear_todo_message()
+            .return_once(|| Ok(()));
+
+        let mut todo_cli_mock = TodoCli {
+            user_interface: Box::new(mock_user_interface),
+            todo_storage: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .clear_todo_list()
+            .await
+            .expect("Should clear the list")
+    }
+
+    #[tokio::test]
+    async fn should_remove_todo() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+        let original_todo_list = create!(Todos, :four_todos);
+        let updated_todo_list = create!(Todos);
+
+        mock_storage
+            .expect_get_todos_from_filestorage()
+            .return_once(|| Ok(original_todo_list));
+
+        mock_storage
+            .expect_write_filestorage()
+            .withf(move |returned_list| *returned_list == updated_todo_list)
+            .return_once(|_| Ok(()));
+
+        mock_user_interface
+            .expect_show_todo_list()
+            .return_once(|_| Ok(()));
+
+        mock_user_interface
+            .expect_remove_todo_message()
+            .return_once(|| Ok(()));
+
+        let mut todo_cli_mock = TodoCli {
+            user_interface: Box::new(mock_user_interface),
+            todo_storage: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .remove_todo(3)
+            .await
+            .expect("Should remove the fourth todo")
     }
 }
