@@ -239,7 +239,7 @@ mod tests {
 
         mock_storage
             .expect_write_filestorage()
-            .withf(move |returned_list| *returned_list == updated_todo_list)
+            .withf(move |returned_list| returned_list == &updated_todo_list)
             .return_once(|_| Ok(()));
 
         mock_user_interface
@@ -259,5 +259,47 @@ mod tests {
             .remove_todo(3)
             .await
             .expect("Should remove the fourth todo")
+    }
+    #[tokio::test]
+    async fn should_mark_todo_as_done() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+        let original_todo_list = create!(Todos, number_todos: 4);
+        let updated_todo_list = create!(Todos, number_todos: 4, done_todo: Some(3));
+
+        mock_storage
+            .expect_get_todos_from_filestorage()
+            .times(2)
+            .returning(move || {
+                let todo_list = original_todo_list.clone();
+                Ok(todo_list)
+            });
+
+        mock_storage
+            .expect_write_filestorage()
+            .withf(move |returned_list| *returned_list == updated_todo_list)
+            .return_once(|_| Ok(()));
+
+        mock_user_interface
+            .expect_show_todo_list()
+            .return_once(|_| Ok(()));
+
+        mock_user_interface
+            .expect_remove_todo_message()
+            .return_once(|| Ok(()));
+
+        mock_user_interface
+            .expect_mark_done_message()
+            .return_once(|| Ok(()));
+
+        let mut todo_cli_mock = TodoCli {
+            user_interface: Box::new(mock_user_interface),
+            todo_storage: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .mark_todo_done(3)
+            .await
+            .expect("Should mark the last todo as done")
     }
 }
