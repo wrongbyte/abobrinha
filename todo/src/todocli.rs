@@ -104,24 +104,23 @@ impl TodoCli {
 mod mocks {
     use super::*;
 
+    pub fn builder(number_todos: usize) -> Todos {
+        let mut list = Vec::new();
+        for number in 0..number_todos {
+            let message = format!("todo {}", number);
+            let todo = Todo::new(message.to_string());
+            list.push(todo)
+        }
+        Todos { list }
+    }
+
     factori::factori!(Todos, {
         default {
-            list = [
-                Todo::new("first".to_string()),
-                Todo::new("second".to_string()),
-                Todo::new("third".to_string())
-            ].to_vec()
+            _list:Vec<Todo> = vec![],
+            number_todos: usize = 0
         }
-        mixin four_todos {
-            list = [
-                Todo::new("first".to_string()),
-                Todo::new("second".to_string()),
-                Todo::new("third".to_string()),
-                Todo::new("fourth".to_string())
-            ].to_vec()
-        }
-        mixin empty {
-            list = [].to_vec()
+        builder {
+            builder(number_todos)
         }
     });
 }
@@ -137,9 +136,9 @@ mod tests {
     async fn should_add_todo() {
         let mut mock_storage = MockStorage::new();
         let mut mock_user_interface = MockUserInterface::new();
-        let todo_added = Todo::new("fourth".to_string());
-        let original_todo_list = create!(Todos);
-        let updated_todo_list = create!(Todos, :four_todos);
+        let todo_added = Todo::new("todo 3".to_string());
+        let original_todo_list = create!(Todos, number_todos: 3);
+        let updated_todo_list = create!(Todos, number_todos: 4);
 
         mock_storage
             .expect_get_todos_from_filestorage()
@@ -169,12 +168,14 @@ mod tests {
     async fn should_show_todo_list() {
         let mut mock_storage = MockStorage::new();
         let mut mock_user_interface = MockUserInterface::new();
-        let todo_list = create!(Todos);
-        let todo_list_binding = create!(Todos);
+        let todo_list = create!(Todos, number_todos: 3);
 
         mock_user_interface
             .expect_show_todo_list()
-            .withf(move |returned_list| *returned_list == todo_list_binding)
+            .withf({
+                let list = todo_list.clone();
+                move |returned_list| *returned_list == list
+            })
             .return_once(|_| Ok(()));
 
         mock_storage
@@ -196,7 +197,7 @@ mod tests {
     async fn should_clear_list() {
         let mut mock_storage = MockStorage::new();
         let mut mock_user_interface = MockUserInterface::new();
-        let empty_todo_list = create!(Todos, :empty);
+        let empty_todo_list = create!(Todos);
 
         mock_storage
             .expect_write_filestorage()
@@ -222,8 +223,8 @@ mod tests {
     async fn should_remove_todo() {
         let mut mock_storage = MockStorage::new();
         let mut mock_user_interface = MockUserInterface::new();
-        let original_todo_list = create!(Todos, :four_todos);
-        let updated_todo_list = create!(Todos);
+        let original_todo_list = create!(Todos, number_todos: 4);
+        let updated_todo_list = create!(Todos, number_todos: 3);
 
         mock_storage
             .expect_get_todos_from_filestorage()
