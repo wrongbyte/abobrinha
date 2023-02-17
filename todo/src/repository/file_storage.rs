@@ -6,7 +6,6 @@ use crate::domain::todos::Todos;
 use crate::repository::file_storage::error::StorageError;
 use std::path::PathBuf;
 
-
 pub struct FileStorage {
     pub path: PathBuf,
 }

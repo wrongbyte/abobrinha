@@ -104,11 +104,17 @@ impl TodoCli {
 mod mocks {
     use super::*;
 
-    pub fn builder(number_todos: usize) -> Todos {
+    pub fn builder(number_todos: usize, done_todo: Option<usize>) -> Todos {
         let mut list = Vec::new();
-        for number in 0..number_todos {
-            let message = format!("todo {}", number);
-            let todo = Todo::new(message.to_string());
+        for index in 0..number_todos {
+            let message = format!("todo {}", index);
+            let mut todo = Todo::new(message.to_string());
+            match done_todo {
+                Some(done_index) if index == done_index => {
+                    todo.done = true;
+                }
+                _ => (),
+            }
             list.push(todo)
         }
         Todos { list }
@@ -117,10 +123,11 @@ mod mocks {
     factori::factori!(Todos, {
         default {
             _list:Vec<Todo> = vec![],
-            number_todos: usize = 0
+            number_todos: usize = 0,
+            done_todo: Option<usize> = None
         }
         builder {
-            builder(number_todos)
+            builder(number_todos, done_todo)
         }
     });
 }

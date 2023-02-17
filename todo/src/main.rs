@@ -3,10 +3,10 @@ use std::path::PathBuf;
 use crate::terminal::Terminal;
 use repository::file_storage::FileStorage;
 use todocli::TodoCli;
+mod domain;
+mod repository;
 mod terminal;
 mod todocli;
-mod repository;
-mod domain;
 extern crate factori;
 
 #[tokio::main]
