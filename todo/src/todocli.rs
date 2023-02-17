@@ -128,6 +128,8 @@ mod mocks {
 
 #[cfg(test)]
 mod tests {
+    use factori::create;
+
     use super::{mocks::*, *};
     use crate::{repository::file_storage::MockStorage, terminal::MockUserInterface};
 
