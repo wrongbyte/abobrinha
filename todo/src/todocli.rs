@@ -117,7 +117,7 @@ mod mocks {
             }
             list.push(todo)
         }
-        Todos { list }
+        Todos::new(list)
     }
 
     factori::factori!(Todos, {

@@ -3,7 +3,7 @@ use std::iter::Iterator;
 
 #[derive(PartialEq, Clone)]
 pub struct Todos {
-    pub list: Vec<Todo>,
+    list: Vec<Todo>,
 }
 
 pub struct Iter<'a> {
