@@ -105,18 +105,18 @@ mod mocks {
     use super::*;
 
     pub fn builder(number_todos: usize, done_todo: Option<usize>) -> Todos {
-        let mut list = Vec::new();
-        for index in 0..number_todos {
-            let message = format!("todo {}", index);
-            let mut todo = Todo::new(message.to_string());
-            match done_todo {
-                Some(done_index) if index == done_index => {
-                    todo.done = true;
+        let list: Vec<Todo> = (0..number_todos)
+            .map(|index| {
+                let message = format!("todo {}", index);
+                let mut todo = Todo::new(message.to_string());
+                if let Some(done_index) = done_todo {
+                    if index == done_index {
+                        todo.done = true;
+                    }
                 }
-                _ => (),
-            }
-            list.push(todo)
-        }
+                todo
+            })
+            .collect();
         Todos::new(list)
     }
 
