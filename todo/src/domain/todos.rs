@@ -1,6 +1,7 @@
 use crate::domain::todo::Todo;
 use std::iter::Iterator;
 
+#[derive(PartialEq, Clone)]
 pub struct Todos {
     list: Vec<Todo>,
 }

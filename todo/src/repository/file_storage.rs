@@ -10,6 +10,7 @@ pub struct FileStorage {
     pub path: PathBuf,
 }
 
+#[cfg_attr(test, mockall::automock)]
 #[async_trait]
 pub trait Storage {
     async fn get_todos_from_filestorage(&self) -> Result<Todos, StorageError>;

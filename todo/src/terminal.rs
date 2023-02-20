@@ -23,6 +23,7 @@ pub enum UserOptions {
     DoTodo(usize),
 }
 
+#[cfg_attr(test, mockall::automock)]
 pub trait UserInterface {
     fn prompt_new_todo(&mut self) -> Result<Todo, TerminalError>;
     fn show_todo(&mut self, todo: &Todo) -> Result<(), TerminalError>;
