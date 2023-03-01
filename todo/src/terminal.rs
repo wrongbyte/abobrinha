@@ -1,11 +1,11 @@
 use crate::domain::{todo::Todo, todos::Todos};
 use console::style;
 use error::TerminalError;
-use uuid::Uuid;
 use std::{
     fmt::Display,
     io::{Stdin, Stdout, Write},
 };
+use uuid::Uuid;
 pub(crate) mod error;
 
 pub struct Terminal {

@@ -27,7 +27,10 @@ impl Storage for PostgresTodoRepository {
         let message = todo.message;
         let todo_uuid = Uuid::new_v4();
         self.client
-            .execute("INSERT INTO todos(message, id) VALUES($1, $2)", &[&message, &todo_uuid])
+            .execute(
+                "INSERT INTO todos(message, id) VALUES($1, $2)",
+                &[&message, &todo_uuid],
+            )
             .await
             .map_err(|error| StorageError { error })?;
         Ok(())

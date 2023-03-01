@@ -6,7 +6,7 @@ use uuid::Uuid;
 pub struct Todo {
     pub message: String,
     pub done: bool,
-    pub id: Uuid
+    pub id: Uuid,
 }
 
 impl Todo {
