@@ -28,7 +28,7 @@ impl Storage for PostgresTodoRepository {
         self.client
             .execute("INSERT INTO todos(message) VALUES($1)", &[&message])
             .await
-            .map_err(|error| StorageError {error})?;
+            .map_err(|error| StorageError { error })?;
         Ok(())
     }
     async fn get_todo_list(&mut self) -> Result<Todos, StorageError> {
@@ -36,12 +36,12 @@ impl Storage for PostgresTodoRepository {
             .client
             .query("SELECT * FROM todos;", &[])
             .await
-            .map_err(|error| StorageError {error})?
+            .map_err(|error| StorageError { error })?
             .into_iter()
             .map(|row| Todo {
                 done: row.get("done"),
                 message: row.get("message"),
-                id: Some(row.get("id"))
+                id: Some(row.get("id")),
             })
             .collect();
 
@@ -51,21 +51,23 @@ impl Storage for PostgresTodoRepository {
         self.client
             .execute("DELETE FROM todos", &[])
             .await
-            .map_err(|error| StorageError {error})?;
+            .map_err(|error| StorageError { error })?;
         Ok(())
     }
     async fn remove_todo(&mut self, todo_uuid: String) -> Result<u64, StorageError> {
-        let number_modified = self.client
+        let number_modified = self
+            .client
             .execute("DELETE FROM todos WHERE id=$1", &[&todo_uuid])
             .await
-            .map_err(|error| StorageError {error})?;
+            .map_err(|error| StorageError { error })?;
         Ok(number_modified)
     }
     async fn mark_todo_done(&mut self, todo_uuid: Uuid) -> Result<u64, StorageError> {
-        let number_modified = self.client
+        let number_modified = self
+            .client
             .execute("UPDATE todos SET done='t' WHERE id=$1", &[&todo_uuid])
             .await
-            .map_err(|error| StorageError {error})?;
-        Ok(number_modified)  
+            .map_err(|error| StorageError { error })?;
+        Ok(number_modified)
     }
 }

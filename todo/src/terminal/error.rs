@@ -7,7 +7,7 @@ pub enum TerminalError {
     Stdout(Error),
     Stdin(Error),
     StorageError(StorageError),
-    UUIDParse(UUIDError)
+    UUIDParse(UUIDError),
 }
 
 impl fmt::Display for TerminalError {
@@ -16,7 +16,7 @@ impl fmt::Display for TerminalError {
             TerminalError::Stdin(error) => write!(f, "Input error: {}", error),
             TerminalError::Stdout(error) => write!(f, "Output error: {}", error),
             TerminalError::StorageError(error) => write!(f, "Error in storage: {}", error),
-            TerminalError::UUIDParse(error) => write!(f, "Error when parsing the uuid: {}", error)
+            TerminalError::UUIDParse(error) => write!(f, "Error when parsing the uuid: {}", error),
         }
     }
 }

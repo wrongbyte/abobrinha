@@ -11,7 +11,9 @@ extern crate factori;
 
 #[tokio::main]
 async fn main() {
-    let client = connect().await.expect("Database connection error. Quitting");
+    let client = connect()
+        .await
+        .expect("Database connection error. Quitting");
     let user_interface = Box::new(Terminal::new());
     let todo_storage = Box::new(PostgresTodoRepository { client });
     let mut todo_cli = TodoCli {

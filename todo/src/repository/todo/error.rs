@@ -3,7 +3,7 @@ use tokio_postgres::Error;
 
 #[derive(Debug)]
 pub struct StorageError {
-    pub error: Error
+    pub error: Error,
 }
 
 impl fmt::Display for StorageError {
