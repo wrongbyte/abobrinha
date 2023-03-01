@@ -6,26 +6,23 @@ use uuid::Uuid;
 pub struct Todo {
     pub message: String,
     pub done: bool,
-    pub id: Option<Uuid>,
+    pub id: Uuid
 }
 
 impl Todo {
-    pub fn new(message: String) -> Self {
+    pub fn new(message: String, id: Uuid) -> Self {
         Todo {
             message,
             done: false,
-            id: None,
+            id,
         }
     }
 }
 
 impl fmt::Display for Todo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if !self.done {
-            write!(f, "[ ] - {} - id: {}", self.message, self.id.unwrap())?
-        } else {
-            write!(f, "[X] - {} - id: {}", self.message, self.id.unwrap())?
-        }
+        let marker = if self.done { 'X' } else { ' ' };
+        write!(f, "[{marker}] - {} - id: {}", self.message, self.id)?;
         Ok(())
     }
 }

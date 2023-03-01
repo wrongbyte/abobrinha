@@ -55,10 +55,10 @@ impl TodoCli {
         Ok(())
     }
 
-    async fn remove_todo(&mut self, todo_uuid: String) -> Result<(), TerminalError> {
+    async fn remove_todo(&mut self, uuid: Uuid) -> Result<(), TerminalError> {
         let todos_moodified = self
             .todo_storage
-            .remove_todo(todo_uuid)
+            .remove_todo(uuid)
             .await
             .map_err(TerminalError::StorageError)?;
         match todos_moodified {
@@ -68,8 +68,7 @@ impl TodoCli {
         Ok(())
     }
 
-    async fn mark_todo_done(&mut self, todo_uuid: String) -> Result<(), TerminalError> {
-        let uuid = Uuid::parse_str(&todo_uuid).map_err(TerminalError::UUIDParse)?;
+    async fn mark_todo_done(&mut self, uuid: Uuid) -> Result<(), TerminalError> {
         let todos_modified = self
             .todo_storage
             .mark_todo_done(uuid)
@@ -84,4 +83,38 @@ impl TodoCli {
         }
         Ok(())
     }
+}
+#[cfg(test)]
+mod mocks {
+    use crate::domain::todos::Todos;
+
+    use super::*;
+
+    pub fn builder(number_todos: usize, done_todo: Option<usize>) -> Todos {
+        let list: Vec<Todo> = (0..number_todos)
+            .map(|index| {
+                let id = Uuid::new_v4();
+                let message = format!("todo {}", index);
+                let mut todo = Todo::new(message.to_string(), id);
+                if let Some(done_index) = done_todo {
+                    if index == done_index {
+                        todo.done = true;
+                    }
+                }
+                todo
+            })
+            .collect();
+        Todos::new(list)
+    }
+
+    factori::factori!(Todos, {
+        default {
+            _list:Vec<Todo> = vec![],
+            number_todos: usize = 0,
+            done_todo: Option<usize> = None
+        }
+        builder {
+            builder(number_todos, done_todo)
+        }
+    });
 }

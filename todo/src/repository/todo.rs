@@ -17,7 +17,7 @@ pub trait Storage {
     async fn add_todo(&mut self, todo: Todo) -> Result<(), StorageError>;
     async fn get_todo_list(&mut self) -> Result<Todos, StorageError>;
     async fn clear_todo_list(&mut self) -> Result<(), StorageError>;
-    async fn remove_todo(&mut self, todo_uuid: String) -> Result<u64, StorageError>;
+    async fn remove_todo(&mut self, todo_uuid: Uuid) -> Result<u64, StorageError>;
     async fn mark_todo_done(&mut self, todo_uuid: Uuid) -> Result<u64, StorageError>;
 }
 
@@ -25,8 +25,9 @@ pub trait Storage {
 impl Storage for PostgresTodoRepository {
     async fn add_todo(&mut self, todo: Todo) -> Result<(), StorageError> {
         let message = todo.message;
+        let todo_uuid = Uuid::new_v4();
         self.client
-            .execute("INSERT INTO todos(message) VALUES($1)", &[&message])
+            .execute("INSERT INTO todos(message, id) VALUES($1, $2)", &[&message, &todo_uuid])
             .await
             .map_err(|error| StorageError { error })?;
         Ok(())
@@ -41,7 +42,7 @@ impl Storage for PostgresTodoRepository {
             .map(|row| Todo {
                 done: row.get("done"),
                 message: row.get("message"),
-                id: Some(row.get("id")),
+                id: row.get("id"),
             })
             .collect();
 
@@ -54,7 +55,7 @@ impl Storage for PostgresTodoRepository {
             .map_err(|error| StorageError { error })?;
         Ok(())
     }
-    async fn remove_todo(&mut self, todo_uuid: String) -> Result<u64, StorageError> {
+    async fn remove_todo(&mut self, todo_uuid: Uuid) -> Result<u64, StorageError> {
         let number_modified = self
             .client
             .execute("DELETE FROM todos WHERE id=$1", &[&todo_uuid])

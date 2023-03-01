@@ -1,6 +1,7 @@
 use crate::domain::{todo::Todo, todos::Todos};
 use console::style;
 use error::TerminalError;
+use uuid::Uuid;
 use std::{
     fmt::Display,
     io::{Stdin, Stdout, Write},
@@ -14,13 +15,13 @@ pub struct Terminal {
 
 pub enum UserOptions {
     NewTodo(Todo),
-    RemoveTodo(String),
+    RemoveTodo(Uuid),
     ClearList,
     Quit,
     Help,
     ShowList,
     Unrecognized,
-    DoTodo(String),
+    DoTodo(Uuid),
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -53,7 +54,7 @@ impl UserInterface for Terminal {
             self.write_interface(&style("Please input a valid todo.").red())?;
             self.prompt_new_todo()
         } else {
-            Ok(Todo::new(user_input))
+            Ok(Todo::new(user_input, Uuid::new_v4()))
         }
     }
 
@@ -99,11 +100,13 @@ impl UserInterface for Terminal {
         let user_input = self.input()?;
 
         if let Some(uuid) = user_input.strip_prefix("rm ") {
-            return Ok(UserOptions::RemoveTodo(uuid.to_string()));
+            let uuid = Uuid::parse_str(uuid).map_err(TerminalError::UuidParse)?;
+            return Ok(UserOptions::RemoveTodo(uuid));
         }
 
         if let Some(uuid) = user_input.strip_prefix("done ") {
-            return Ok(UserOptions::DoTodo(uuid.to_string()));
+            let uuid = Uuid::parse_str(uuid).map_err(TerminalError::UuidParse)?;
+            return Ok(UserOptions::DoTodo(uuid));
         }
 
         match user_input.as_str() {
