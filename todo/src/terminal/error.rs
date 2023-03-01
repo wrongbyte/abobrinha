@@ -1,13 +1,13 @@
-use crate::repository::file_storage::error::StorageError;
+use crate::repository::todo::error::StorageError;
 use std::{fmt, io::Error};
+use uuid::Error as UUIDError;
 
 #[derive(Debug)]
 pub enum TerminalError {
     Stdout(Error),
     Stdin(Error),
-    ParseInt(String),
-    IndexError,
     StorageError(StorageError),
+    UUIDParse(UUIDError)
 }
 
 impl fmt::Display for TerminalError {
@@ -15,9 +15,8 @@ impl fmt::Display for TerminalError {
         match self {
             TerminalError::Stdin(error) => write!(f, "Input error: {}", error),
             TerminalError::Stdout(error) => write!(f, "Output error: {}", error),
-            TerminalError::ParseInt(i) => write!(f, "Parse error: \"{}\" is an invalid index!", i),
-            TerminalError::IndexError => write!(f, "Index error: Index out of bounds!"),
             TerminalError::StorageError(error) => write!(f, "Error in storage: {}", error),
+            TerminalError::UUIDParse(error) => write!(f, "Error when parsing the uuid: {}", error)
         }
     }
 }

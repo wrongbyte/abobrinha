@@ -1,9 +1,12 @@
 use std::fmt;
 
+use uuid::Uuid;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Todo {
     pub message: String,
     pub done: bool,
+    pub id: Option<Uuid>
 }
 
 impl Todo {
@@ -11,6 +14,7 @@ impl Todo {
         Todo {
             message,
             done: false,
+            id: None
         }
     }
 }
@@ -18,9 +22,9 @@ impl Todo {
 impl fmt::Display for Todo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if !self.done {
-            write!(f, "[ ] - {}", self.message)?
+            write!(f, "[ ] - {} - id: {}", self.message, self.id.unwrap())?
         } else {
-            write!(f, "[X] - {}", self.message)?
+            write!(f, "[X] - {} - id: {}", self.message, self.id.unwrap())?
         }
         Ok(())
     }

@@ -14,13 +14,13 @@ pub struct Terminal {
 
 pub enum UserOptions {
     NewTodo(Todo),
-    RemoveTodo(usize),
+    RemoveTodo(String),
     ClearList,
     Quit,
     Help,
     ShowList,
     Unrecognized,
-    DoTodo(usize),
+    DoTodo(String),
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -37,6 +37,7 @@ pub trait UserInterface {
     fn show_todo_list(&mut self, todo_list: Todos) -> Result<(), TerminalError>;
     fn mark_done_message(&mut self) -> Result<(), TerminalError>;
     fn print_error(&mut self, error: &TerminalError);
+    fn report_not_found(&mut self) -> Result<(), TerminalError>;
 }
 
 impl UserInterface for Terminal {
@@ -54,6 +55,10 @@ impl UserInterface for Terminal {
         } else {
             Ok(Todo::new(user_input))
         }
+    }
+
+    fn report_not_found(&mut self) -> Result<(), TerminalError> {
+        self.write_interface(&style("Could not find a todo with the specified id.").red())
     }
 
     fn mark_done_message(&mut self) -> Result<(), TerminalError> {
@@ -93,18 +98,12 @@ impl UserInterface for Terminal {
         self.write_interface(&style("Do you want to input a new todo? Type \"y\" to add a new todo or \"help\" to see all commands.").blue())?;
         let user_input = self.input()?;
 
-        if let Some(index) = user_input.strip_prefix("rm ") {
-            let parsed_i = index
-                .parse()
-                .map_err(|_| TerminalError::ParseInt(index.to_string()))?;
-            return Ok(UserOptions::RemoveTodo(parsed_i));
+        if let Some(uuid) = user_input.strip_prefix("rm ") {
+            return Ok(UserOptions::RemoveTodo(uuid.to_string()));
         }
 
-        if let Some(index) = user_input.strip_prefix("done ") {
-            let parsed_i = index
-                .parse()
-                .map_err(|_| TerminalError::ParseInt(index.to_string()))?;
-            return Ok(UserOptions::DoTodo(parsed_i));
+        if let Some(uuid) = user_input.strip_prefix("done ") {
+            return Ok(UserOptions::DoTodo(uuid.to_string()));
         }
 
         match user_input.as_str() {
