@@ -1,5 +1,3 @@
-use uuid::Uuid;
-
 use crate::domain::todo::Todo;
 use std::iter::Iterator;
 
