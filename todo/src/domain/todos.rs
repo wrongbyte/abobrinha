@@ -70,8 +70,4 @@ impl Todos {
     pub fn is_empty(&self) -> bool {
         self.list.is_empty()
     }
-
-    pub fn mark_done(&self, id: Uuid) -> Option<&Todo> {
-        self.list.iter().find(|todo| todo.id == id)
-    }
 }
