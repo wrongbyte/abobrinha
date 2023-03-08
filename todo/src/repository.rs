@@ -1,17 +1,15 @@
-use crate::domain::todo::Todo;
-use crate::repository::todo::error::StorageError;
-use http_problem::prelude::*;
-use std::{future::Future, panic::AssertUnwindSafe, sync::Arc};
-use tokio_postgres::Client;
-use uuid::Uuid;
-
-use futures_util::FutureExt;
-
 pub mod todo;
 
 #[cfg(test)]
 mod test_utils {
-    use super::*;
+    use crate::domain::todo::Todo;
+    use crate::repository::todo::error::StorageError;
+    use http_problem::prelude::*;
+    use std::{future::Future, panic::AssertUnwindSafe, sync::Arc};
+    use tokio_postgres::Client;
+    use uuid::Uuid;
+
+    use futures_util::FutureExt;
 
     pub async fn connect() -> Result<Arc<Client>> {
         let (client, connection) = tokio_postgres::connect(
