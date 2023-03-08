@@ -25,7 +25,7 @@ pub trait Storage {
 impl Storage for PostgresTodoRepository {
     async fn add_todo(&mut self, todo: Todo) -> Result<(), StorageError> {
         let message = todo.message;
-        let todo_uuid = Uuid::new_v4();
+        let todo_uuid = todo.id;
         self.client
             .execute(
                 "INSERT INTO todos(message, id) VALUES($1, $2)",
@@ -73,5 +73,80 @@ impl Storage for PostgresTodoRepository {
             .await
             .map_err(|error| StorageError { error })?;
         Ok(number_modified)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::repository::test_utils;
+    use crate::todocli::mocks::*;
+    use factori::create;
+
+    #[tokio::test]
+    async fn test_list_todos() {
+        test_utils::with_client(|client| async move {
+            self::test_utils::add_todo(client.clone()).await.unwrap();
+
+            let mut todo_storage = PostgresTodoRepository { client: client };
+            let mut todo_list = todo_storage.get_todo_list().await.unwrap();
+
+            assert_eq!(todo_list.len(), 1);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_add_todos() {
+        test_utils::with_client(|client| async move {
+            let id = Uuid::new_v4();
+            let todo = Todo::new("Test add todo".to_string(), id);
+            let mut todo_storage = PostgresTodoRepository {
+                client: client.clone(),
+            };
+            todo_storage.add_todo(todo.clone()).await.unwrap();
+            let todo_created = self::test_utils::get_todo_by_id(client, id).await.unwrap();
+            match todo_created {
+                Some(todo_returned) => assert_eq!(todo_returned, todo),
+                None => panic!("Could not find todo created"),
+            }
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_remove_todo() {
+        test_utils::with_client(|client| async move {
+            let todo_list = create!(Todos, number_todos: 3);
+            let todo = todo_list.get(2).unwrap();
+            let mut todo_storage = PostgresTodoRepository {
+                client: client.clone(),
+            };
+
+            for todo in todo_list.iter() {
+                let t = todo.clone();
+                todo_storage.add_todo(t).await.unwrap();
+            }
+            todo_storage.remove_todo(todo.id).await.unwrap();
+            let mut todo_list = todo_storage.get_todo_list().await.unwrap();
+
+            assert_eq!(todo_list.len(), 2);
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn test_clear_list() {
+        test_utils::with_client(|client| async move {
+            let mut todo_storage = PostgresTodoRepository {
+                client: client.clone(),
+            };
+
+            todo_storage.clear_todo_list().await.unwrap();
+            let mut todo_list = todo_storage.get_todo_list().await.unwrap();
+
+            assert_eq!(todo_list.len(), 0);
+        })
+        .await;
     }
 }

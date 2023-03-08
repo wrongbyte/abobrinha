@@ -84,7 +84,7 @@ impl TodoCli {
     }
 }
 #[cfg(test)]
-mod mocks {
+pub mod mocks {
     use crate::domain::todos::Todos;
 
     use super::*;
