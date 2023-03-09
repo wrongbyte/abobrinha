@@ -4,6 +4,7 @@ pub mod todo;
 mod test_utils {
     use crate::domain::todo::Todo;
     use crate::repository::todo::error::StorageError;
+    use crate::repository::todo::get_todo_from_sql;
     use http_problem::prelude::*;
     use std::{future::Future, panic::AssertUnwindSafe, sync::Arc};
     use tokio_postgres::Client;
@@ -48,11 +49,7 @@ mod test_utils {
             .query_opt("SELECT id, message, done FROM todos WHERE id = $1;", &[&id])
             .await
             .map_err(|error| StorageError { error })?
-            .map(|row| Todo {
-                done: row.get("done"),
-                message: row.get("message"),
-                id: row.get("id"),
-            });
+            .map(get_todo_from_sql);
         Ok(todo)
     }
 

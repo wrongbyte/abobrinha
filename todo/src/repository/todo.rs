@@ -6,6 +6,7 @@ use crate::domain::todo::Todo;
 use crate::domain::todos::Todos;
 use crate::repository::todo::error::StorageError;
 use std::sync::Arc;
+use tokio_postgres::Row;
 
 pub struct PostgresTodoRepository {
     pub client: Arc<Client>,
@@ -42,11 +43,7 @@ impl Storage for PostgresTodoRepository {
             .await
             .map_err(|error| StorageError { error })?
             .into_iter()
-            .map(|row| Todo {
-                done: row.get("done"),
-                message: row.get("message"),
-                id: row.get("id"),
-            })
+            .map(get_todo_from_sql)
             .collect();
 
         Ok(Todos::new(todos))
@@ -148,5 +145,13 @@ mod tests {
             assert_eq!(todo_list.len(), 0);
         })
         .await;
+    }
+}
+
+pub fn get_todo_from_sql(row: Row) -> Todo {
+    Todo {
+        done: row.get("done"),
+        message: row.get("message"),
+        id: row.get("id"),
     }
 }

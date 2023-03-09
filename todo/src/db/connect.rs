@@ -10,11 +10,6 @@ pub async fn connect() -> Result<Arc<Client>> {
     )
     .await?;
 
-    tokio::spawn(async move {
-        if let Err(err) = connection.await {
-            println!("connection error: {err}")
-        }
-    });
-    println!("Successfully connected to database");
+    tokio::spawn(async move { connection.await.unwrap() });
     Ok(Arc::new(client))
 }

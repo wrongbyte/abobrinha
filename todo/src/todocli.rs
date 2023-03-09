@@ -135,17 +135,21 @@ mod tests {
         let mut updated_todo_list = original_todo_list.clone();
         updated_todo_list.push(todo_added.clone());
 
-        mock_storage.expect_add_todo().return_once(|_| Ok(()));
+        mock_storage
+            .expect_add_todo()
+            .times(1)
+            .returning(|_| Ok(()));
 
-        mock_storage.expect_get_todo_list().return_once({
+        mock_storage.expect_get_todo_list().times(1).returning({
             let updated_list = updated_todo_list.clone();
-            move || Ok(updated_list)
+            move || Ok(updated_list.clone())
         });
 
         mock_user_interface
             .expect_show_todo_list()
             .withf(move |returned_list| *returned_list == updated_todo_list)
-            .return_once(|_| Ok(()));
+            .times(1)
+            .returning(|_| Ok(()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),
@@ -170,11 +174,13 @@ mod tests {
                 let list = todo_list.clone();
                 move |returned_list| *returned_list == list
             })
-            .return_once(|_| Ok(()));
+            .times(1)
+            .returning(|_| Ok(()));
 
         mock_storage
             .expect_get_todo_list()
-            .return_once(|| Ok(todo_list));
+            .times(1)
+            .returning(move || Ok(todo_list.clone()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),
@@ -192,11 +198,15 @@ mod tests {
         let mut mock_storage = MockStorage::new();
         let mut mock_user_interface = MockUserInterface::new();
 
-        mock_storage.expect_clear_todo_list().return_once(|| Ok(()));
+        mock_storage
+            .expect_clear_todo_list()
+            .times(1)
+            .returning(|| Ok(()));
 
         mock_user_interface
             .expect_clear_todo_message()
-            .return_once(|| Ok(()));
+            .times(1)
+            .returning(|| Ok(()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),
@@ -219,17 +229,23 @@ mod tests {
 
         mock_storage
             .expect_get_todo_list()
-            .return_once(|| Ok(original_todo_list));
+            .times(1)
+            .returning(move || Ok(original_todo_list.clone()));
 
-        mock_storage.expect_remove_todo().return_once(|_| Ok(1));
+        mock_storage
+            .expect_remove_todo()
+            .times(1)
+            .returning(|_| Ok(1));
 
         mock_user_interface
             .expect_show_todo_list()
-            .return_once(|_| Ok(()));
+            .times(1)
+            .returning(|_| Ok(()));
 
         mock_user_interface
             .expect_remove_todo_message()
-            .return_once(|| Ok(()));
+            .times(1)
+            .returning(|| Ok(()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),
@@ -251,23 +267,30 @@ mod tests {
         let todo_id = todo.id;
         todo.done = true;
 
-        mock_storage.expect_mark_todo_done().return_once(|_| Ok(1));
+        mock_storage
+            .expect_mark_todo_done()
+            .times(1)
+            .returning(|_| Ok(1));
 
         mock_user_interface
             .expect_mark_done_message()
-            .return_once(|| Ok(()));
+            .times(1)
+            .returning(|| Ok(()));
 
         mock_user_interface
             .expect_show_todo_list()
-            .return_once(|_| Ok(()));
+            .times(1)
+            .returning(|_| Ok(()));
 
         mock_storage
             .expect_get_todo_list()
-            .return_once(|| Ok(todo_list));
+            .times(1)
+            .returning(move || Ok(todo_list.clone()));
 
         mock_user_interface
             .expect_mark_done_message()
-            .return_once(|| Ok(()));
+            .times(1)
+            .returning(|| Ok(()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),

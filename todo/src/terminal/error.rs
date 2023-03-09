@@ -13,10 +13,10 @@ pub enum TerminalError {
 impl fmt::Display for TerminalError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TerminalError::Stdin(error) => write!(f, "Input error: {}", error),
-            TerminalError::Stdout(error) => write!(f, "Output error: {}", error),
-            TerminalError::StorageError(error) => write!(f, "Error in storage: {}", error),
-            TerminalError::UuidParse(error) => write!(f, "Error when parsing the uuid: {}", error),
+            TerminalError::Stdin(error) => write!(f, "Input error: {error}"),
+            TerminalError::Stdout(error) => write!(f, "Output error: {error}"),
+            TerminalError::StorageError(error) => write!(f, "Error in storage: {error}"),
+            TerminalError::UuidParse(error) => write!(f, "Error when parsing the uuid: {error}"),
         }
     }
 }
