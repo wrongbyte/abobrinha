@@ -29,3 +29,9 @@ impl TerminalError {
         )
     }
 }
+
+impl From<StorageError> for TerminalError {
+    fn from(error: StorageError) -> Self {
+        TerminalError::StorageError(error)
+    }
+}

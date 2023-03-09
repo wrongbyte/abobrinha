@@ -27,39 +27,25 @@ impl TodoCli {
     }
 
     async fn show_list(&mut self) -> Result<(), TerminalError> {
-        let todo_list = self
-            .todo_storage
-            .get_todo_list()
-            .await
-            .map_err(TerminalError::StorageError)?;
+        let todo_list = self.todo_storage.get_todo_list().await?;
         self.user_interface.show_todo_list(todo_list)?;
         Ok(())
     }
 
     async fn add_todo(&mut self, todo: Todo) -> Result<(), TerminalError> {
-        self.todo_storage
-            .add_todo(todo)
-            .await
-            .map_err(TerminalError::StorageError)?;
+        self.todo_storage.add_todo(todo).await?;
         self.show_list().await?;
         Ok(())
     }
 
     async fn clear_todo_list(&mut self) -> Result<(), TerminalError> {
-        self.todo_storage
-            .clear_todo_list()
-            .await
-            .map_err(TerminalError::StorageError)?;
+        self.todo_storage.clear_todo_list().await?;
         self.user_interface.clear_todo_message()?;
         Ok(())
     }
 
     async fn remove_todo(&mut self, uuid: Uuid) -> Result<(), TerminalError> {
-        let todos_moodified = self
-            .todo_storage
-            .remove_todo(uuid)
-            .await
-            .map_err(TerminalError::StorageError)?;
+        let todos_moodified = self.todo_storage.remove_todo(uuid).await?;
         match todos_moodified {
             0 => self.user_interface.report_not_found()?,
             _ => self.user_interface.remove_todo_message()?,
@@ -68,11 +54,7 @@ impl TodoCli {
     }
 
     async fn mark_todo_done(&mut self, uuid: Uuid) -> Result<(), TerminalError> {
-        let todos_modified = self
-            .todo_storage
-            .mark_todo_done(uuid)
-            .await
-            .map_err(TerminalError::StorageError)?;
+        let todos_modified = self.todo_storage.mark_todo_done(uuid).await?;
         match todos_modified {
             0 => self.user_interface.report_not_found()?,
             _ => {
