@@ -13,3 +13,9 @@ impl fmt::Display for StorageError {
         write!(f, "Error in storage: {}", self.error)
     }
 }
+
+impl From<Error> for StorageError {
+    fn from(error: Error) -> Self {
+        StorageError { error }
+    }
+}

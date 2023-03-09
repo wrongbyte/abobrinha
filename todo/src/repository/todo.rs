@@ -32,16 +32,14 @@ impl Storage for PostgresTodoRepository {
                 "INSERT INTO todos(message, id) VALUES($1, $2)",
                 &[&message, &todo_uuid],
             )
-            .await
-            .map_err(|error| StorageError { error })?;
+            .await?;
         Ok(())
     }
     async fn get_todo_list(&mut self) -> Result<Todos, StorageError> {
         let todos = self
             .client
             .query("SELECT * FROM todos;", &[])
-            .await
-            .map_err(|error| StorageError { error })?
+            .await?
             .into_iter()
             .map(get_todo_from_sql)
             .collect();
@@ -49,26 +47,21 @@ impl Storage for PostgresTodoRepository {
         Ok(Todos::new(todos))
     }
     async fn clear_todo_list(&mut self) -> Result<(), StorageError> {
-        self.client
-            .execute("DELETE FROM todos", &[])
-            .await
-            .map_err(|error| StorageError { error })?;
+        self.client.execute("DELETE FROM todos", &[]).await?;
         Ok(())
     }
     async fn remove_todo(&mut self, todo_uuid: Uuid) -> Result<u64, StorageError> {
         let number_modified = self
             .client
             .execute("DELETE FROM todos WHERE id=$1", &[&todo_uuid])
-            .await
-            .map_err(|error| StorageError { error })?;
+            .await?;
         Ok(number_modified)
     }
     async fn mark_todo_done(&mut self, todo_uuid: Uuid) -> Result<u64, StorageError> {
         let number_modified = self
             .client
             .execute("UPDATE todos SET done='t' WHERE id=$1", &[&todo_uuid])
-            .await
-            .map_err(|error| StorageError { error })?;
+            .await?;
         Ok(number_modified)
     }
 }
