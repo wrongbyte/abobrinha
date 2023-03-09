@@ -65,6 +65,10 @@ impl Todos {
         self.list.get_mut(index)
     }
 
+    pub fn get(&self, index: usize) -> Option<&Todo> {
+        self.list.get(index)
+    }
+
     pub fn is_empty(&self) -> bool {
         self.list.is_empty()
     }

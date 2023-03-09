@@ -1,7 +1,7 @@
 use crate::domain::todo::Todo;
-use crate::domain::todos::Todos;
-use crate::repository::file_storage::Storage;
+use crate::repository::todo::Storage;
 use crate::terminal::{error::TerminalError, UserInterface, UserOptions};
+use uuid::Uuid;
 
 pub(crate) struct TodoCli {
     pub user_interface: Box<dyn UserInterface>,
@@ -27,88 +27,56 @@ impl TodoCli {
     }
 
     async fn show_list(&mut self) -> Result<(), TerminalError> {
-        let todo_list = self
-            .todo_storage
-            .get_todos_from_filestorage()
-            .await
-            .map_err(TerminalError::StorageError)?;
+        let todo_list = self.todo_storage.get_todo_list().await?;
         self.user_interface.show_todo_list(todo_list)?;
         Ok(())
     }
 
     async fn add_todo(&mut self, todo: Todo) -> Result<(), TerminalError> {
-        let mut todo_list = self
-            .todo_storage
-            .get_todos_from_filestorage()
-            .await
-            .map_err(TerminalError::StorageError)?;
-        todo_list.push(todo);
-        self.todo_storage
-            .write_filestorage(&todo_list)
-            .await
-            .map_err(TerminalError::StorageError)?;
-        self.user_interface.show_todo_list(todo_list)?;
+        self.todo_storage.add_todo(todo).await?;
+        self.show_list().await?;
         Ok(())
     }
 
     async fn clear_todo_list(&mut self) -> Result<(), TerminalError> {
-        let todo_list = Todos::new(Vec::<Todo>::new());
-        self.todo_storage
-            .write_filestorage(&todo_list)
-            .await
-            .map_err(TerminalError::StorageError)?;
+        self.todo_storage.clear_todo_list().await?;
         self.user_interface.clear_todo_message()?;
         Ok(())
     }
 
-    async fn remove_todo(&mut self, index_todo: usize) -> Result<(), TerminalError> {
-        let mut todo_list = self
-            .todo_storage
-            .get_todos_from_filestorage()
-            .await
-            .map_err(TerminalError::StorageError)?;
-        if index_todo > todo_list.len() {
-            return Err(TerminalError::IndexError);
+    async fn remove_todo(&mut self, uuid: Uuid) -> Result<(), TerminalError> {
+        let todos_moodified = self.todo_storage.remove_todo(uuid).await?;
+        match todos_moodified {
+            0 => self.user_interface.report_not_found()?,
+            _ => self.user_interface.remove_todo_message()?,
         }
-        todo_list.remove(index_todo);
-        self.todo_storage
-            .write_filestorage(&todo_list)
-            .await
-            .map_err(TerminalError::StorageError)?;
-        self.user_interface.remove_todo_message()?;
         Ok(())
     }
 
-    async fn mark_todo_done(&mut self, index_todo: usize) -> Result<(), TerminalError> {
-        let mut todo_list = self
-            .todo_storage
-            .get_todos_from_filestorage()
-            .await
-            .map_err(TerminalError::StorageError)?;
-        if let Some(todo) = todo_list.get_mut(index_todo) {
-            todo.done = true;
-        } else {
-            return Err(TerminalError::IndexError);
+    async fn mark_todo_done(&mut self, uuid: Uuid) -> Result<(), TerminalError> {
+        let todos_modified = self.todo_storage.mark_todo_done(uuid).await?;
+        match todos_modified {
+            0 => self.user_interface.report_not_found()?,
+            _ => {
+                self.user_interface.mark_done_message()?;
+                self.show_list().await?;
+            }
         }
-        self.todo_storage
-            .write_filestorage(&todo_list)
-            .await
-            .map_err(TerminalError::StorageError)?;
-        self.user_interface.mark_done_message()?;
-        self.show_list().await?;
         Ok(())
     }
 }
-
 #[cfg(test)]
-mod mocks {
+pub mod mocks {
+    use crate::domain::todos::Todos;
+
     use super::*;
 
     pub fn builder(number_todos: usize, done_todo: Option<usize>) -> Todos {
         let list: Vec<Todo> = (0..number_todos)
             .map(|index| {
+                let id = Uuid::new_v4();
                 let message = format!("todo {}", index);
-                let mut todo = Todo::new(message.to_string());
+                let mut todo = Todo::new(message.to_string(), id);
                 if let Some(done_index) = done_todo {
                     if index == done_index {
                         todo.done = true;
@@ -137,28 +105,33 @@ mod tests {
     use factori::create;
 
     use super::{mocks::*, *};
-    use crate::{repository::file_storage::MockStorage, terminal::MockUserInterface};
+    use crate::{repository::todo::MockStorage, terminal::MockUserInterface};
 
     #[tokio::test]
     async fn should_add_todo() {
         let mut mock_storage = MockStorage::new();
         let mut mock_user_interface = MockUserInterface::new();
-        let todo_added = Todo::new("todo 3".to_string());
+        let id = Uuid::new_v4();
+        let todo_added = Todo::new("todo 3".to_string(), id);
         let original_todo_list = create!(Todos, number_todos: 3);
-        let updated_todo_list = create!(Todos, number_todos: 4);
+        let mut updated_todo_list = original_todo_list.clone();
+        updated_todo_list.push(todo_added.clone());
 
         mock_storage
-            .expect_get_todos_from_filestorage()
-            .return_once(|| Ok(original_todo_list));
+            .expect_add_todo()
+            .times(1)
+            .returning(|_| Ok(()));
 
-        mock_storage
-            .expect_write_filestorage()
-            .return_once(|_| Ok(()));
+        mock_storage.expect_get_todo_list().times(1).returning({
+            let updated_list = updated_todo_list.clone();
+            move || Ok(updated_list.clone())
+        });
 
         mock_user_interface
             .expect_show_todo_list()
             .withf(move |returned_list| *returned_list == updated_todo_list)
-            .return_once(|_| Ok(()));
+            .times(1)
+            .returning(|_| Ok(()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),
@@ -183,11 +156,13 @@ mod tests {
                 let list = todo_list.clone();
                 move |returned_list| *returned_list == list
             })
-            .return_once(|_| Ok(()));
+            .times(1)
+            .returning(|_| Ok(()));
 
         mock_storage
-            .expect_get_todos_from_filestorage()
-            .return_once(|| Ok(todo_list));
+            .expect_get_todo_list()
+            .times(1)
+            .returning(move || Ok(todo_list.clone()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),
@@ -204,16 +179,16 @@ mod tests {
     async fn should_clear_list() {
         let mut mock_storage = MockStorage::new();
         let mut mock_user_interface = MockUserInterface::new();
-        let empty_todo_list = create!(Todos);
 
         mock_storage
-            .expect_write_filestorage()
-            .withf(move |list| list == &empty_todo_list)
-            .return_once(|_| Ok(()));
+            .expect_clear_todo_list()
+            .times(1)
+            .returning(|| Ok(()));
 
         mock_user_interface
             .expect_clear_todo_message()
-            .return_once(|| Ok(()));
+            .times(1)
+            .returning(|| Ok(()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),
@@ -230,25 +205,28 @@ mod tests {
     async fn should_remove_todo() {
         let mut mock_storage = MockStorage::new();
         let mut mock_user_interface = MockUserInterface::new();
-        let original_todo_list = create!(Todos, number_todos: 4);
-        let updated_todo_list = create!(Todos, number_todos: 3);
+        let mut original_todo_list = create!(Todos, number_todos: 4);
+        let todo = original_todo_list.get_mut(3).unwrap();
+        let todo_id = todo.id;
 
         mock_storage
-            .expect_get_todos_from_filestorage()
+            .expect_get_todo_list()
             .return_once(|| Ok(original_todo_list));
 
         mock_storage
-            .expect_write_filestorage()
-            .withf(move |returned_list| returned_list == &updated_todo_list)
-            .return_once(|_| Ok(()));
+            .expect_remove_todo()
+            .times(1)
+            .returning(|_| Ok(1));
 
         mock_user_interface
             .expect_show_todo_list()
-            .return_once(|_| Ok(()));
+            .times(1)
+            .returning(|_| Ok(()));
 
         mock_user_interface
             .expect_remove_todo_message()
-            .return_once(|| Ok(()));
+            .times(1)
+            .returning(|| Ok(()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),
@@ -256,41 +234,44 @@ mod tests {
         };
 
         todo_cli_mock
-            .remove_todo(3)
+            .remove_todo(todo_id)
             .await
             .expect("Should remove the fourth todo")
     }
+
     #[tokio::test]
     async fn should_mark_todo_as_done() {
         let mut mock_storage = MockStorage::new();
         let mut mock_user_interface = MockUserInterface::new();
-        let original_todo_list = create!(Todos, number_todos: 4);
-        let updated_todo_list = create!(Todos, number_todos: 4, done_todo: Some(3));
+        let mut todo_list = create!(Todos, number_todos: 4);
+        let todo = todo_list.get_mut(3).unwrap();
+        let todo_id = todo.id;
+        todo.done = true;
 
         mock_storage
-            .expect_get_todos_from_filestorage()
-            .times(2)
-            .returning(move || {
-                let todo_list = original_todo_list.clone();
-                Ok(todo_list)
-            });
-
-        mock_storage
-            .expect_write_filestorage()
-            .withf(move |returned_list| *returned_list == updated_todo_list)
-            .return_once(|_| Ok(()));
-
-        mock_user_interface
-            .expect_show_todo_list()
-            .return_once(|_| Ok(()));
-
-        mock_user_interface
-            .expect_remove_todo_message()
-            .return_once(|| Ok(()));
+            .expect_mark_todo_done()
+            .times(1)
+            .returning(|_| Ok(1));
 
         mock_user_interface
             .expect_mark_done_message()
-            .return_once(|| Ok(()));
+            .times(1)
+            .returning(|| Ok(()));
+
+        mock_user_interface
+            .expect_show_todo_list()
+            .times(1)
+            .returning(|_| Ok(()));
+
+        mock_storage
+            .expect_get_todo_list()
+            .times(1)
+            .returning(move || Ok(todo_list.clone()));
+
+        mock_user_interface
+            .expect_mark_done_message()
+            .times(1)
+            .returning(|| Ok(()));
 
         let mut todo_cli_mock = TodoCli {
             user_interface: Box::new(mock_user_interface),
@@ -298,7 +279,7 @@ mod tests {
         };
 
         todo_cli_mock
-            .mark_todo_done(3)
+            .mark_todo_done(todo_id)
             .await
             .expect("Should mark the last todo as done")
     }

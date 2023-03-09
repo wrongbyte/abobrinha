@@ -1,8 +1,8 @@
-use std::path::PathBuf;
-
 use crate::terminal::Terminal;
-use repository::file_storage::FileStorage;
+use db::connect::connect;
+use repository::todo::PostgresTodoRepository;
 use todocli::TodoCli;
+mod db;
 mod domain;
 mod repository;
 mod terminal;
@@ -11,10 +11,11 @@ extern crate factori;
 
 #[tokio::main]
 async fn main() {
+    let client = connect()
+        .await
+        .expect("Database connection error. Quitting");
     let user_interface = Box::new(Terminal::new());
-    let todo_storage = Box::new(FileStorage {
-        path: PathBuf::from("todo.txt"),
-    });
+    let todo_storage = Box::new(PostgresTodoRepository { client });
     let mut todo_cli = TodoCli {
         user_interface,
         todo_storage,
