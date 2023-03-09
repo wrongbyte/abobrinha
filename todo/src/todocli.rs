@@ -229,8 +229,7 @@ mod tests {
 
         mock_storage
             .expect_get_todo_list()
-            .times(1)
-            .returning(move || Ok(original_todo_list.clone()));
+            .return_once(|| Ok(original_todo_list));
 
         mock_storage
             .expect_remove_todo()
