@@ -70,7 +70,7 @@ impl Storage for PostgresTodoRepository {
 mod tests {
     use super::*;
     use crate::repository::test_utils;
-    use crate::todocli::mocks::*;
+    use crate::mocks::*;
     use factori::create;
 
     #[tokio::test]
