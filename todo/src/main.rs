@@ -2,7 +2,6 @@ use crate::terminal::Terminal;
 use controllers::todo::{TodoController, TodoControllerImpl};
 use db::connect::connect;
 use repository::todo::PostgresTodoRepository;
-use terminal::{error::TerminalError, UserInterface, UserOptions};
 mod controllers;
 mod db;
 mod domain;
@@ -24,35 +23,13 @@ async fn main() {
     });
 
     loop {
-        if let Err(error) =
-            get_user_intention(&mut Box::new(Terminal::new()), &mut todo_controller).await
-        {
-            println!("{}", &error);
+        if let Err(error) = todo_controller.get_user_intention().await {
+            todo_controller.user_interface.print_error(&error);
             if error.is_fatal() {
                 break;
             }
         }
     }
-}
-
-async fn get_user_intention(
-    user_interface: &mut Box<Terminal>,
-    todo_controller: &mut Box<TodoControllerImpl>,
-) -> Result<(), TerminalError> {
-    loop {
-        match user_interface.user_intention()? {
-            UserOptions::Quit => break,
-            UserOptions::NewTodo(todo) => todo_controller.add_todo(todo).await?,
-            UserOptions::Help => user_interface.show_help()?,
-            UserOptions::ClearList => todo_controller.clear_todo_list().await?,
-            UserOptions::RemoveTodo(index) => todo_controller.remove_todo(index).await?,
-            UserOptions::Unrecognized => user_interface.alert_unrecognized()?,
-            UserOptions::ShowList => todo_controller.show_list().await?,
-            UserOptions::DoTodo(index) => todo_controller.mark_todo_done(index).await?,
-        }
-    }
-    user_interface.write_interface(&"Ok, quitting now.")?;
-    Ok(())
 }
 
 pub mod mocks {

@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::domain::todo::Todo;
 use crate::repository::todo::Storage;
 use crate::terminal::error::TerminalError;
-use crate::terminal::UserInterface;
+use crate::terminal::{UserInterface, UserOptions};
 
 pub struct TodoControllerImpl {
     pub todo_repository: Box<dyn Storage + Send + Sync>,
@@ -19,10 +19,28 @@ pub trait TodoController {
     async fn clear_todo_list(&mut self) -> Result<(), TerminalError>;
     async fn remove_todo(&mut self, uuid: Uuid) -> Result<(), TerminalError>;
     async fn mark_todo_done(&mut self, uuid: Uuid) -> Result<(), TerminalError>;
+    async fn get_user_intention(&mut self) -> Result<(), TerminalError>;
 }
 
 #[async_trait]
 impl TodoController for TodoControllerImpl {
+    async fn get_user_intention(&mut self) -> Result<(), TerminalError> {
+        loop {
+            match self.user_interface.user_intention()? {
+                UserOptions::Quit => break,
+                UserOptions::NewTodo(todo) => self.add_todo(todo).await?,
+                UserOptions::Help => self.user_interface.show_help()?,
+                UserOptions::ClearList => self.clear_todo_list().await?,
+                UserOptions::RemoveTodo(index) => self.remove_todo(index).await?,
+                UserOptions::Unrecognized => self.user_interface.alert_unrecognized()?,
+                UserOptions::ShowList => self.show_list().await?,
+                UserOptions::DoTodo(index) => self.mark_todo_done(index).await?,
+            }
+        }
+        self.user_interface.write_interface(&"Ok, quitting now.")?;
+        Ok(())
+    }
+
     async fn show_list(&mut self) -> Result<(), TerminalError> {
         let todo_list = self.todo_repository.get_todo_list().await?;
         self.user_interface.show_todo_list(todo_list)?;
