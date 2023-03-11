@@ -42,7 +42,7 @@ pub mod mocks {
             .map(|index| {
                 let id = Uuid::new_v4();
                 let message = format!("todo {}", index);
-                let mut todo = Todo::new(message.to_string(), id);
+                let mut todo = Todo::new(message, id);
                 if let Some(done_index) = done_todo {
                     if index == done_index {
                         todo.done = true;
