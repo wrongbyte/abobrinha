@@ -60,8 +60,8 @@ impl TodoController for TodoControllerImpl {
     }
 
     async fn remove_todo(&mut self, uuid: Uuid) -> Result<(), TerminalError> {
-        let todos_moodified = self.todo_repository.remove_todo(uuid).await?;
-        match todos_moodified {
+        let todos_modified = self.todo_repository.remove_todo(uuid).await?;
+        match todos_modified {
             0 => self.user_interface.report_not_found()?,
             _ => self.user_interface.remove_todo_message()?,
         }
@@ -78,5 +78,187 @@ impl TodoController for TodoControllerImpl {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use factori::create;
+    use uuid::Uuid;
+    use crate::domain::todo::{Todo, mocks::*};
+
+    use super::*;
+    use crate::{repository::todo::MockStorage, terminal::MockUserInterface};
+
+    #[tokio::test]
+    async fn should_add_todo() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+        let id = Uuid::new_v4();
+        let todo_added = Todo::new("todo 3".to_string(), id);
+        let original_todo_list = create!(Todos, number_todos: 3);
+        let mut updated_todo_list = original_todo_list.clone();
+        updated_todo_list.push(todo_added.clone());
+
+        mock_storage
+            .expect_add_todo()
+            .times(1)
+            .returning(|_| Ok(()));
+
+        mock_storage.expect_get_todo_list().times(1).returning({
+            let updated_list = updated_todo_list.clone();
+            move || Ok(updated_list.clone())
+        });
+
+        mock_user_interface
+            .expect_show_todo_list()
+            .withf(move |returned_list| *returned_list == updated_todo_list)
+            .times(1)
+            .returning(|_| Ok(()));
+
+        let mut todo_cli_mock = TodoControllerImpl {
+            user_interface: Box::new(mock_user_interface),
+            todo_repository: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .add_todo(todo_added)
+            .await
+            .expect("Should add a Todo successfully");
+    }
+
+    #[tokio::test]
+    async fn should_show_todo_list() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+        let todo_list = create!(Todos, number_todos: 3);
+
+        mock_user_interface
+            .expect_show_todo_list()
+            .withf({
+                let list = todo_list.clone();
+                move |returned_list| *returned_list == list
+            })
+            .times(1)
+            .returning(|_| Ok(()));
+
+        mock_storage
+            .expect_get_todo_list()
+            .times(1)
+            .returning(move || Ok(todo_list.clone()));
+
+        let mut todo_cli_mock = TodoControllerImpl {
+            user_interface: Box::new(mock_user_interface),
+            todo_repository: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .show_list()
+            .await
+            .expect("Should list all todos")
+    }
+
+    #[tokio::test]
+    async fn should_clear_list() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+
+        mock_storage
+            .expect_clear_todo_list()
+            .times(1)
+            .returning(|| Ok(()));
+
+        mock_user_interface
+            .expect_clear_todo_message()
+            .times(1)
+            .returning(|| Ok(()));
+
+        let mut todo_cli_mock = TodoControllerImpl {
+            user_interface: Box::new(mock_user_interface),
+            todo_repository: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .clear_todo_list()
+            .await
+            .expect("Should clear the list")
+    }
+
+    #[tokio::test]
+    async fn should_remove_todo() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+        let mut original_todo_list = create!(Todos, number_todos: 4);
+        let todo = original_todo_list.get_mut(3).unwrap();
+        let todo_id = todo.id;
+
+        mock_storage
+            .expect_get_todo_list()
+            .return_once(|| Ok(original_todo_list));
+
+        mock_storage
+            .expect_remove_todo()
+            .times(1)
+            .returning(|_| Ok(1));
+
+        mock_user_interface
+            .expect_remove_todo_message()
+            .times(1)
+            .returning(|| Ok(()));
+
+        let mut todo_cli_mock = TodoControllerImpl {
+            user_interface: Box::new(mock_user_interface),
+            todo_repository: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .remove_todo(todo_id)
+            .await
+            .expect("Should remove the fourth todo")
+    }
+
+    #[tokio::test]
+    async fn should_mark_todo_as_done() {
+        let mut mock_storage = MockStorage::new();
+        let mut mock_user_interface = MockUserInterface::new();
+        let mut todo_list = create!(Todos, number_todos: 4);
+        let todo = todo_list.get_mut(3).unwrap();
+        let todo_id = todo.id;
+        todo.done = true;
+
+        mock_storage
+            .expect_mark_todo_done()
+            .times(1)
+            .returning(|_| Ok(1));
+
+        mock_user_interface
+            .expect_mark_done_message()
+            .times(1)
+            .returning(|| Ok(()));
+
+        mock_user_interface
+            .expect_show_todo_list()
+            .times(1)
+            .returning(|_| Ok(()));
+
+        mock_storage
+            .expect_get_todo_list()
+            .times(1)
+            .returning(move || Ok(todo_list.clone()));
+
+        mock_user_interface
+            .expect_mark_done_message()
+            .times(1)
+            .returning(|| Ok(()));
+
+        let mut todo_cli_mock = TodoControllerImpl {
+            user_interface: Box::new(mock_user_interface),
+            todo_repository: Box::new(mock_storage),
+        };
+
+        todo_cli_mock
+            .mark_todo_done(todo_id)
+            .await
+            .expect("Should mark the last todo as done")
     }
 }
