@@ -83,9 +83,9 @@ impl TodoController for TodoControllerImpl {
 
 #[cfg(test)]
 mod tests {
+    use crate::domain::todo::{mocks::*, Todo};
     use factori::create;
     use uuid::Uuid;
-    use crate::domain::todo::{Todo, mocks::*};
 
     use super::*;
     use crate::{repository::todo::MockStorage, terminal::MockUserInterface};
