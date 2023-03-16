@@ -1,15 +1,30 @@
-use crate::domain::todo::Todo;
-use crate::repository::todo::Storage;
-use crate::terminal::{error::TerminalError, UserInterface, UserOptions};
+use async_trait::async_trait;
 use uuid::Uuid;
 
-pub(crate) struct TodoCli {
-    pub user_interface: Box<dyn UserInterface>,
-    pub todo_storage: Box<dyn Storage>,
+use crate::domain::todo::Todo;
+use crate::repository::todo::Storage;
+use crate::terminal::error::TerminalError;
+use crate::terminal::{UserInterface, UserOptions};
+
+pub struct TodoControllerImpl {
+    pub todo_repository: Box<dyn Storage + Send + Sync>,
+    pub user_interface: Box<dyn UserInterface + Send + Sync>,
 }
 
-impl TodoCli {
-    pub async fn run(&mut self) -> Result<(), TerminalError> {
+#[cfg_attr(test, mockall::automock)]
+#[async_trait]
+pub trait TodoController {
+    async fn show_list(&mut self) -> Result<(), TerminalError>;
+    async fn add_todo(&mut self, todo: Todo) -> Result<(), TerminalError>;
+    async fn clear_todo_list(&mut self) -> Result<(), TerminalError>;
+    async fn remove_todo(&mut self, uuid: Uuid) -> Result<(), TerminalError>;
+    async fn mark_todo_done(&mut self, uuid: Uuid) -> Result<(), TerminalError>;
+    async fn get_user_intention(&mut self) -> Result<(), TerminalError>;
+}
+
+#[async_trait]
+impl TodoController for TodoControllerImpl {
+    async fn get_user_intention(&mut self) -> Result<(), TerminalError> {
         loop {
             match self.user_interface.user_intention()? {
                 UserOptions::Quit => break,
@@ -27,26 +42,26 @@ impl TodoCli {
     }
 
     async fn show_list(&mut self) -> Result<(), TerminalError> {
-        let todo_list = self.todo_storage.get_todo_list().await?;
+        let todo_list = self.todo_repository.get_todo_list().await?;
         self.user_interface.show_todo_list(todo_list)?;
         Ok(())
     }
 
     async fn add_todo(&mut self, todo: Todo) -> Result<(), TerminalError> {
-        self.todo_storage.add_todo(todo).await?;
+        self.todo_repository.add_todo(todo).await?;
         self.show_list().await?;
         Ok(())
     }
 
     async fn clear_todo_list(&mut self) -> Result<(), TerminalError> {
-        self.todo_storage.clear_todo_list().await?;
+        self.todo_repository.clear_todo_list().await?;
         self.user_interface.clear_todo_message()?;
         Ok(())
     }
 
     async fn remove_todo(&mut self, uuid: Uuid) -> Result<(), TerminalError> {
-        let todos_moodified = self.todo_storage.remove_todo(uuid).await?;
-        match todos_moodified {
+        let todos_modified = self.todo_repository.remove_todo(uuid).await?;
+        match todos_modified {
             0 => self.user_interface.report_not_found()?,
             _ => self.user_interface.remove_todo_message()?,
         }
@@ -54,7 +69,7 @@ impl TodoCli {
     }
 
     async fn mark_todo_done(&mut self, uuid: Uuid) -> Result<(), TerminalError> {
-        let todos_modified = self.todo_storage.mark_todo_done(uuid).await?;
+        let todos_modified = self.todo_repository.mark_todo_done(uuid).await?;
         match todos_modified {
             0 => self.user_interface.report_not_found()?,
             _ => {
@@ -65,46 +80,14 @@ impl TodoCli {
         Ok(())
     }
 }
-#[cfg(test)]
-pub mod mocks {
-    use crate::domain::todos::Todos;
-
-    use super::*;
-
-    pub fn builder(number_todos: usize, done_todo: Option<usize>) -> Todos {
-        let list: Vec<Todo> = (0..number_todos)
-            .map(|index| {
-                let id = Uuid::new_v4();
-                let message = format!("todo {}", index);
-                let mut todo = Todo::new(message.to_string(), id);
-                if let Some(done_index) = done_todo {
-                    if index == done_index {
-                        todo.done = true;
-                    }
-                }
-                todo
-            })
-            .collect();
-        Todos::new(list)
-    }
-
-    factori::factori!(Todos, {
-        default {
-            _list:Vec<Todo> = vec![],
-            number_todos: usize = 0,
-            done_todo: Option<usize> = None
-        }
-        builder {
-            builder(number_todos, done_todo)
-        }
-    });
-}
 
 #[cfg(test)]
 mod tests {
+    use crate::domain::todo::{mocks::*, Todo};
     use factori::create;
+    use uuid::Uuid;
 
-    use super::{mocks::*, *};
+    use super::*;
     use crate::{repository::todo::MockStorage, terminal::MockUserInterface};
 
     #[tokio::test]
@@ -133,9 +116,9 @@ mod tests {
             .times(1)
             .returning(|_| Ok(()));
 
-        let mut todo_cli_mock = TodoCli {
+        let mut todo_cli_mock = TodoControllerImpl {
             user_interface: Box::new(mock_user_interface),
-            todo_storage: Box::new(mock_storage),
+            todo_repository: Box::new(mock_storage),
         };
 
         todo_cli_mock
@@ -164,9 +147,9 @@ mod tests {
             .times(1)
             .returning(move || Ok(todo_list.clone()));
 
-        let mut todo_cli_mock = TodoCli {
+        let mut todo_cli_mock = TodoControllerImpl {
             user_interface: Box::new(mock_user_interface),
-            todo_storage: Box::new(mock_storage),
+            todo_repository: Box::new(mock_storage),
         };
 
         todo_cli_mock
@@ -190,9 +173,9 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        let mut todo_cli_mock = TodoCli {
+        let mut todo_cli_mock = TodoControllerImpl {
             user_interface: Box::new(mock_user_interface),
-            todo_storage: Box::new(mock_storage),
+            todo_repository: Box::new(mock_storage),
         };
 
         todo_cli_mock
@@ -219,18 +202,13 @@ mod tests {
             .returning(|_| Ok(1));
 
         mock_user_interface
-            .expect_show_todo_list()
-            .times(1)
-            .returning(|_| Ok(()));
-
-        mock_user_interface
             .expect_remove_todo_message()
             .times(1)
             .returning(|| Ok(()));
 
-        let mut todo_cli_mock = TodoCli {
+        let mut todo_cli_mock = TodoControllerImpl {
             user_interface: Box::new(mock_user_interface),
-            todo_storage: Box::new(mock_storage),
+            todo_repository: Box::new(mock_storage),
         };
 
         todo_cli_mock
@@ -273,9 +251,9 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        let mut todo_cli_mock = TodoCli {
+        let mut todo_cli_mock = TodoControllerImpl {
             user_interface: Box::new(mock_user_interface),
-            todo_storage: Box::new(mock_storage),
+            todo_repository: Box::new(mock_storage),
         };
 
         todo_cli_mock
